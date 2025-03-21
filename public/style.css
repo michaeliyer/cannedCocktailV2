@@ -1,0 +1,54 @@
+body {
+    font-family: sans-serif;
+    padding: 2rem;
+    background: #f9f9f9;
+  }
+  
+  h1 {
+    margin-bottom: 1rem;
+  }
+  
+  button {
+    margin: 0.5rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+  }
+  form {
+    margin-top: 1rem;
+  }
+  
+  input,
+  select {
+    margin: 0.5rem;
+    padding: 0.5rem;
+  }
+  
+  .inventory-container {
+    margin-top: 1rem;
+    overflow-x: auto;
+  }
+  
+  .inventory-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+  }
+  
+  .inventory-table th, .inventory-table td {
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+    text-align: center;
+  }
+  
+  .inventory-table th {
+    background-color: #f8f8f8;
+  }
+  
+  .inventory-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  .inventory-table tr:last-child td {
+    background-color: #e0ffe0;
+    font-weight: bold;
+  }
