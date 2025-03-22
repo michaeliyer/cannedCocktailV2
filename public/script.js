@@ -473,3 +473,100 @@ custForm.addEventListener('submit', (e) => {
 
 // === INITIAL LOAD ===
 loadCustomers();
+
+
+function loadOrders() {
+  fetch('/orders')
+    .then(res => res.json())
+    .then(orders => {
+      const container = document.getElementById('orders');
+      container.innerHTML = '<h3>All Orders</h3>';
+
+      if (orders.length === 0) {
+        container.innerHTML += "<p>No orders yet.</p>";
+        return;
+      }
+
+      orders.forEach(order => {
+        container.innerHTML += `
+          <p>Order #${order.order_id}: ${order.customer_name} ordered ${order.quantity} x ${order.product_name} (${order.variant_size || 'Unknown size'}) totaling $${order.subtotal ? order.subtotal.toFixed(2) : '0.00'} on ${new Date(order.date).toLocaleDateString()}</p>        `;
+      });
+    });
+}
+
+
+
+function loadOrderFormDropdowns() {
+  // Load customers
+  fetch('/customers')
+    .then(res => res.json())
+    .then(customers => {
+      const custSelect = document.getElementById('orderCustomerSelect');
+      customers.forEach(cust => {
+        const opt = document.createElement('option');
+        opt.value = cust.customer_id;
+        opt.textContent = cust.name;
+        custSelect.appendChild(opt);
+      });
+    });
+
+  // Load variants
+  fetch('/products')
+    .then(res => res.json())
+    .then(products => {
+      const variantSelect = document.getElementById('orderVariantSelect');
+      products.forEach(prod => {
+        fetch(`/products/${prod.product_id}/variants`)
+          .then(res => res.json())
+          .then(variants => {
+            variants.forEach(variant => {
+              const opt = document.createElement('option');
+              opt.value = variant.variant_id;
+              opt.textContent = `${prod.name} - ${variant.size} (${variant.units_in_stock} in stock)`;
+              variantSelect.appendChild(opt);
+            });
+          });
+      });
+    });
+}
+
+// Handle Order Form Submit
+document.getElementById('orderForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+
+  const customerId = parseInt(document.getElementById('orderCustomerSelect').value);
+  const variantId = parseInt(document.getElementById('orderVariantSelect').value);
+  const quantity = parseInt(document.getElementById('orderQuantity').value);
+
+  // Simple version: One variant per order
+  const orderData = {
+    customer_id: customerId,
+    items: [
+      {
+        variant_id: variantId,
+        quantity: quantity
+      }
+    ]
+  };
+
+  console.log("Submitting order:", orderData);
+
+  fetch('/orders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(orderData)
+  })
+    .then(res => res.json())
+    .then(data => {
+      console.log("Server responded:", data);
+      alert(data.message);
+      document.getElementById('orderForm').reset();
+      loadOrders();
+      loadProducts(); 
+    })
+    .catch(err => console.error("Error submitting order:", err));
+});
+// Initial load
+loadOrderFormDropdowns();
+loadOrders();
+

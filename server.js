@@ -12,6 +12,14 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
+
+
+
+
+
+
+
+
 // --- ROUTES ---
 
 // Get all products
@@ -197,6 +205,124 @@ app.delete('/customers/:id', (req, res) => {
     res.json({ message: "Customer deleted successfully!" });
   });
 });
+
+// --- Orders ---
+// Create new order
+app.post('/orders', async (req, res) => {
+  const { customer_id, items, total_price, payments, balance } = req.body;
+  const date = new Date().toISOString();
+
+  try {
+    // Start a transaction
+    await db.run('BEGIN TRANSACTION');
+
+    // Insert into orders table
+    const orderResult = await new Promise((resolve, reject) => {
+      db.run(
+        "INSERT INTO orders (customer_id, date, total_price, payments, balance) VALUES (?, ?, ?, ?, ?)",
+        [customer_id, date, total_price, payments, balance],
+        function (err) {
+          if (err) return reject(err);
+          resolve(this);
+        }
+      );
+    });
+
+    const orderId = orderResult.lastID;
+
+    // Prepare statement for inserting into order_items
+    const stmt = await new Promise((resolve, reject) => {
+      const statement = db.prepare(
+        "INSERT INTO order_items (order_id, product_id, variant_id, quantity, subtotal) VALUES (?, ?, ?, ?, ?)",
+        (err) => {
+          if (err) return reject(err);
+          resolve(statement);
+        }
+      );
+    });
+
+
+
+    // Insert each item
+    for (const item of items) {
+      const { variant_id, quantity, subtotal } = item;
+
+      // Fetch product_id based on variant_id
+      const product = await new Promise((resolve, reject) => {
+        db.get(
+          "SELECT product_id FROM product_variants WHERE variant_id = ?",
+          [variant_id],
+          (err, row) => {
+            if (err) return reject(err);
+            if (!row) return reject(new Error(`No product found for variant_id ${variant_id}`));
+            resolve(row);
+          }
+        );
+      });
+
+      const product_id = product.product_id;
+
+      // Insert into order_items
+      await new Promise((resolve, reject) => {
+        stmt.run(orderId, product_id, variant_id, quantity, subtotal, (err) => {
+          if (err) return reject(err);
+          resolve();
+        });
+      });
+    }
+
+    // Finalize the statement
+    await new Promise((resolve, reject) => {
+      stmt.finalize((err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    });
+
+    // Commit the transaction
+    await db.run('COMMIT');
+
+    // Send success response
+    res.status(201).json({ message: "Order created successfully!", order_id: orderId });
+  } catch (err) {
+    // Rollback the transaction in case of error
+    await db.run('ROLLBACK');
+    console.error("Error processing order:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get all orders (basic view)
+app.get('/orders', (req, res) => {
+  const query = `
+SELECT 
+  o.order_id,
+  o.date,
+  c.name AS customer_name,
+  p.name AS product_name,
+  v.size AS variant_size,
+  oi.quantity,
+  oi.subtotal
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+JOIN order_items oi ON o.order_id = oi.order_id
+JOIN product_variants v ON oi.variant_id = v.variant_id
+JOIN products p ON v.product_id = p.product_id
+
+ORDER BY o.order_id DESC;
+  `;
+
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      console.error("Error fetching orders:", err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(rows);
+  });
+});
+
+
+
 
 
 // --- SERVER LISTEN ---
