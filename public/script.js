@@ -352,3 +352,124 @@ document.getElementById('viewInventory').addEventListener('click', () => {
         tbody.appendChild(totalRow);
       });
   });
+
+
+  // === LOAD CUSTOMERS ===
+function loadCustomers() {
+  fetch('/customers')
+    .then(res => res.json())
+    .then(customers => {
+      const container = document.getElementById('customers');
+      container.innerHTML = '';
+
+      if (customers.length === 0) {
+        container.innerHTML = "<p>No customers yet.</p>";
+        return;
+      }
+
+      customers.forEach(cust => {
+        const custDiv = document.createElement('div');
+        custDiv.classList.add('customer');
+        custDiv.innerHTML = `
+          <h3>${cust.name}</h3>
+          <p>Email: ${cust.email || '-'}</p>
+          <p>Phone: ${cust.phone || '-'}</p>
+          <p>Notes: ${cust.notes || '-'}</p>
+          <button class="edit-cust-btn" data-id="${cust.customer_id}" data-name="${cust.name}" data-email="${cust.email}" data-phone="${cust.phone}" data-notes="${cust.notes}">Edit</button>
+          <button class="delete-cust-btn" data-id="${cust.customer_id}">Delete</button>
+          <hr>
+        `;
+        container.appendChild(custDiv);
+      });
+
+      // === DELETE CUSTOMER LISTENER ===
+      document.querySelectorAll('.delete-cust-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+          const id = e.target.getAttribute('data-id');
+          if (confirm("Delete this customer?")) {
+            deleteCustomer(id);
+          }
+        });
+      });
+
+      // === EDIT CUSTOMER LISTENER ===
+      document.querySelectorAll('.edit-cust-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+          const id = e.target.getAttribute('data-id');
+          document.getElementById('cust_name').value = e.target.getAttribute('data-name');
+          document.getElementById('cust_email').value = e.target.getAttribute('data-email');
+          document.getElementById('cust_phone').value = e.target.getAttribute('data-phone');
+          document.getElementById('cust_notes').value = e.target.getAttribute('data-notes');
+
+          custForm.setAttribute('data-edit-id', id);
+          custForm.querySelector('button').textContent = "Update Customer";
+        });
+      });
+    })
+    .catch(err => console.error("Error loading customers:", err));
+}
+
+// === DELETE CUSTOMER FUNCTION ===
+function deleteCustomer(id) {
+  fetch(`/customers/${id}`, { method: 'DELETE' })
+    .then(res => res.json())
+    .then(data => {
+      alert(data.message);
+      loadCustomers();
+    })
+    .catch(err => console.error("Error deleting customer:", err));
+}
+
+// === CUSTOMER FORM HANDLING ===
+const custForm = document.getElementById('customerForm');
+
+custForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+
+  const custData = {
+    name: document.getElementById('cust_name').value,
+    email: document.getElementById('cust_email').value,
+    phone: document.getElementById('cust_phone').value,
+    notes: document.getElementById('cust_notes').value
+  };
+
+  const editId = custForm.getAttribute('data-edit-id');
+
+  if (editId) {
+    // === EDIT CUSTOMER ===
+    fetch(`/customers/${editId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(custData)
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log("Server response (Edit):", data);
+        alert(data.message);
+        custForm.reset();
+        custForm.removeAttribute('data-edit-id');
+        custForm.querySelector('button').textContent = "Add Customer";
+        loadCustomers();
+      })
+      .catch(err => console.error("Error editing customer:", err));
+  } else {
+    // === ADD CUSTOMER ===
+    console.log("Sending to server:", custData); // Debug log
+    fetch('/customers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(custData)
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log("Server response (Add):", data);
+        alert(data.message);
+        custForm.reset();
+        loadCustomers();
+      })
+      .catch(err => console.error("Error adding customer:", err));
+  }
+});
+
+// === INITIAL LOAD ===
+loadCustomers();

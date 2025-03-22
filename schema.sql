@@ -58,3 +58,12 @@ CREATE TABLE order_items (
     FOREIGN KEY (product_id) REFERENCES products (product_id),
     FOREIGN KEY (variant_id) REFERENCES product_variants (variant_id)
 );
+
+-- Customers table
+CREATE TABLE IF NOT EXISTS customers (
+  customer_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  email TEXT,
+  phone TEXT,
+  notes TEXT
+);

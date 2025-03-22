@@ -140,6 +140,65 @@ app.put('/variants/:id/addstock', (req, res) => {
   });
 });
 
+// --- CUSTOMERS CRUD ---
+
+// Get all customers
+app.get('/customers', (req, res) => {
+  db.all("SELECT * FROM customers", [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
+// Add new customer
+app.post('/customers', (req, res) => {
+  const { name, email, phone, notes } = req.body;
+  console.log("Received POST /customers:", req.body); // <-- Good
+
+  if (!name) return res.status(400).json({ error: "Customer name required." });
+
+  db.run(
+    "INSERT INTO customers (name, email, phone, notes) VALUES (?, ?, ?, ?)",
+    [name, email, phone, notes],
+    function(err) {
+      if (err) {
+        console.error("SQL Error:", err.message); // <<< ADD THIS!
+        return res.status(500).json({ error: err.message });
+      }
+
+      res.status(201).json({
+        message: "Customer added successfully!",
+        customer_id: this.lastID
+      });
+    }
+  );
+});
+
+// Update customer
+app.put('/customers/:id', (req, res) => {
+  const id = req.params.id;
+  const { name, email, phone, notes } = req.body;
+
+  db.run(
+    "UPDATE customers SET name = ?, email = ?, phone = ?, notes = ? WHERE customer_id = ?",
+    [name, email, phone, notes, id],
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ message: "Customer updated successfully!" });
+    }
+  );
+});
+
+// Delete customer
+app.delete('/customers/:id', (req, res) => {
+  const id = req.params.id;
+  db.run("DELETE FROM customers WHERE customer_id = ?", [id], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: "Customer deleted successfully!" });
+  });
+});
+
+
 // --- SERVER LISTEN ---
 app.listen(3000, () => {
   console.log('Server running at http://localhost:3000');
