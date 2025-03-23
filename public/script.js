@@ -92,7 +92,8 @@ function loadProducts() {
               variants.forEach(variant => {
                 variantsDiv.innerHTML += `
                   <p>
-                      Size: ${variant.size}, Price: $${variant.unit_price}, Stock: ${variant.units_in_stock}, Sold: ${variant.units_sold}, SKU: ${variant.sku}                    <button class="edit-variant-btn" 
+                    Size: ${variant.size}, Price: $${variant.unit_price}, Stock: ${variant.units_in_stock}, SKU: ${variant.sku}
+                    <button class="edit-variant-btn" 
                       data-vid="${variant.variant_id}" 
                       data-pid="${productId}" 
                       data-size="${variant.size}" 
@@ -577,3 +578,75 @@ document.getElementById('orderForm').addEventListener('submit', (e) => {
 // Initial load
 loadOrderFormDropdowns();
 loadOrders();
+
+
+
+
+
+
+document.getElementById('fetchReportBtn').addEventListener('click', () => {
+  const startDate = document.getElementById('startDate').value;
+  const endDate = document.getElementById('endDate').value;
+
+  if (!startDate || !endDate) {
+    alert("Please select both start and end dates!");
+    return;
+  }
+
+  // Make a request to server
+  fetch(`/sales-report?startDate=${startDate}&endDate=${endDate}`)
+    .then(res => res.json())
+    .then(data => {
+      displaySalesReport(data);
+      console.log("Fetching report for:", startDate, "to", endDate);
+    })
+    .catch(err => {
+      console.error("Error fetching report:", err);
+      alert("Failed to fetch sales report.");
+    });
+});
+
+document.getElementById('fetchDailyBtn').addEventListener('click', () => {
+  const reportDate = document.getElementById('reportDate').value;
+
+  fetch(`/daily-report?date=${reportDate}`)
+    .then(res => res.json())
+    .then(data => {
+      console.log("Daily report data:", data);
+      displayDailyReport(data);
+    })
+    .catch(err => {
+      console.error("Error fetching daily report:", err);
+      alert("Failed to fetch daily report.");
+    });
+});
+
+// Function to display (basic version)
+function displayDailyReport(data) {
+  const reportDiv = document.getElementById('dailyReport');
+  reportDiv.innerHTML = "<h3>Daily Report:</h3>";
+
+  if (data.length === 0) {
+    reportDiv.innerHTML += "<p>No sales for this day.</p>";
+    return;
+  }
+
+  data.forEach(order => {
+    reportDiv.innerHTML += `<p>Order #${order.order_id} - ${order.customer_name} - $${order.total_price}</p>`;
+  });
+}
+
+
+function displaySalesReport(data) {
+  const reportDiv = document.getElementById('salesReport');
+  reportDiv.innerHTML = '';
+
+  if (data.length === 0) {
+    reportDiv.textContent = "No sales data for selected range.";
+    return;
+  }
+
+  data.forEach(order => {
+    reportDiv.innerHTML += `<p>Order #${order.order_id}: ${order.customer_name} - Total: $${order.total_price}</p>`;
+  });
+}

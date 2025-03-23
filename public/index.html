@@ -78,6 +78,23 @@
   <div id="inventoryTable" class="inventory-container"></div>
 
   <!-- Future: Add Forms and Order Sections -->
+  <section id="daily-report-section">
+    <h2>Daily Report</h2>
+    <label for="reportDate">Select Date:</label>
+    <input type="date" id="reportDate">
+    <button id="fetchDailyBtn">Fetch Daily Report</button>
+    <div id="dailyReport"></div>
+  </section>
+
+  <section id="sales-report-section">
+    <h2>Sales Report</h2>
+    <label for="startDate">Start Date:</label>
+    <input type="date" id="startDate">
+    <label for="endDate">End Date:</label>
+    <input type="date" id="endDate">
+    <button id="fetchReportBtn">Fetch Report</button>
+    <div id="salesReport"></div>
+  </section>
 
   <script src="script.js"></script>
 </body>

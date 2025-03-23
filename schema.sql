@@ -53,7 +53,7 @@ CREATE TABLE order_items (
 );
 
 -- Customers table
-CREATE TABLE IF NOT EXISTS customers (
+CREATE TABLE  customers (
   customer_id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   email TEXT,
