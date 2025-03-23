@@ -208,12 +208,114 @@ app.delete('/customers/:id', (req, res) => {
 
 // --- Orders ---
 // Create new order
+// app.post('/orders', async (req, res) => {
+//   const { customer_id, items, total_price, payments, balance } = req.body;
+//   const date = new Date().toISOString();
+
+//   try {
+//     // Start a transaction
+//     await db.run('BEGIN TRANSACTION');
+
+//     // Insert into orders table
+//     const orderResult = await new Promise((resolve, reject) => {
+//       db.run(
+//         "INSERT INTO orders (customer_id, date, total_price, payments, balance) VALUES (?, ?, ?, ?, ?)",
+//         [customer_id, date, total_price, payments, balance],
+//         function (err) {
+//           if (err) return reject(err);
+//           resolve(this);
+//         }
+//       );
+//     });
+
+//     const orderId = orderResult.lastID;
+
+//     // Prepare statement for inserting into order_items
+//     const stmt = await new Promise((resolve, reject) => {
+//       const statement = db.prepare(
+//         "INSERT INTO order_items (order_id, product_id, variant_id, quantity, subtotal) VALUES (?, ?, ?, ?, ?)",
+//         (err) => {
+//           if (err) return reject(err);
+//           resolve(statement);
+//         }
+//       );
+//     });
+
+
+
+//     // Insert each item
+//     // for (const item of items) {
+//     //   const { variant_id, quantity, subtotal } = item;
+
+//     //   // Fetch product_id based on variant_id
+//     //   const product = await new Promise((resolve, reject) => {
+//     //     db.get(
+//     //       "SELECT product_id FROM product_variants WHERE variant_id = ?",
+//     //       [variant_id],
+//     //       (err, row) => {
+//     //         if (err) return reject(err);
+//     //         if (!row) return reject(new Error(`No product found for variant_id ${variant_id}`));
+//     //         resolve(row);
+//     //       }
+//     //     );
+//     //   });
+
+//     //   const product_id = product.product_id;
+//     // Insert each item
+// for (const item of items) {
+//   const { variant_id, quantity } = item;
+
+//   // Fetch product_id AND unit_price based on variant_id
+//   const product = await new Promise((resolve, reject) => {
+//     db.get(
+//       "SELECT product_id, unit_price FROM product_variants WHERE variant_id = ?",
+//       [variant_id],
+//       (err, row) => {
+//         if (err) return reject(err);
+//         if (!row) return reject(new Error(`No product found for variant_id ${variant_id}`));
+//         resolve(row);
+//       }
+//     );
+//   });
+
+//   const product_id = product.product_id;
+//   const subtotal = product.unit_price * quantity; // 🟢 Calculate subtotal here!
+
+//   // Insert into order_items
+//   await new Promise((resolve, reject) => {
+//     stmt.run(orderId, product_id, variant_id, quantity, subtotal, (err) => {
+//       if (err) return reject(err);
+//       resolve();
+//     });
+//   });
+// }
+
+
+//     // Finalize the statement
+//     await new Promise((resolve, reject) => {
+//       stmt.finalize((err) => {
+//         if (err) return reject(err);
+//         resolve();
+//       });
+//     });
+
+//     // Commit the transaction
+//     await db.run('COMMIT');
+
+//     // Send success response
+//     res.status(201).json({ message: "Order created successfully!", order_id: orderId });
+//   } catch (err) {
+//     // Rollback the transaction in case of error
+//     await db.run('ROLLBACK');
+//     console.error("Error processing order:", err);
+//     res.status(500).json({ error: err.message });
+//   }
+// });
 app.post('/orders', async (req, res) => {
   const { customer_id, items, total_price, payments, balance } = req.body;
   const date = new Date().toISOString();
 
   try {
-    // Start a transaction
     await db.run('BEGIN TRANSACTION');
 
     // Insert into orders table
@@ -230,7 +332,7 @@ app.post('/orders', async (req, res) => {
 
     const orderId = orderResult.lastID;
 
-    // Prepare statement for inserting into order_items
+    // Prepare statement
     const stmt = await new Promise((resolve, reject) => {
       const statement = db.prepare(
         "INSERT INTO order_items (order_id, product_id, variant_id, quantity, subtotal) VALUES (?, ?, ?, ?, ?)",
@@ -241,16 +343,14 @@ app.post('/orders', async (req, res) => {
       );
     });
 
-
-
-    // Insert each item
+    // Insert items
     for (const item of items) {
-      const { variant_id, quantity, subtotal } = item;
+      const { variant_id, quantity } = item;
 
-      // Fetch product_id based on variant_id
+      // Fetch product_id AND unit_price
       const product = await new Promise((resolve, reject) => {
         db.get(
-          "SELECT product_id FROM product_variants WHERE variant_id = ?",
+          "SELECT product_id, unit_price FROM product_variants WHERE variant_id = ?",
           [variant_id],
           (err, row) => {
             if (err) return reject(err);
@@ -261,6 +361,8 @@ app.post('/orders', async (req, res) => {
       });
 
       const product_id = product.product_id;
+      const subtotal = product.unit_price * quantity;
+      console.log(`Inserted item: product_id ${product_id}, quantity ${quantity}, subtotal ${subtotal}`);
 
       // Insert into order_items
       await new Promise((resolve, reject) => {
@@ -271,7 +373,7 @@ app.post('/orders', async (req, res) => {
       });
     }
 
-    // Finalize the statement
+    // Finalize & commit
     await new Promise((resolve, reject) => {
       stmt.finalize((err) => {
         if (err) return reject(err);
@@ -279,13 +381,9 @@ app.post('/orders', async (req, res) => {
       });
     });
 
-    // Commit the transaction
     await db.run('COMMIT');
-
-    // Send success response
     res.status(201).json({ message: "Order created successfully!", order_id: orderId });
   } catch (err) {
-    // Rollback the transaction in case of error
     await db.run('ROLLBACK');
     console.error("Error processing order:", err);
     res.status(500).json({ error: err.message });

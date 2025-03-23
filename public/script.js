@@ -489,10 +489,16 @@ function loadOrders() {
 
       orders.forEach(order => {
         container.innerHTML += `
-          <p>Order #${order.order_id}: ${order.customer_name} ordered ${order.quantity} x ${order.product_name} (${order.variant_size || 'Unknown size'}) totaling $${order.subtotal ? order.subtotal.toFixed(2) : '0.00'} on ${new Date(order.date).toLocaleDateString()}</p>        `;
+          <p>Order #${order.order_id}: ${order.customer_name} ordered ${order.quantity} x ${order.product_name} (${order.variant_size || 'Unknown size'}) totaling $${order.subtotal} on ${new Date(order.date).toLocaleDateString()}</p>        `;
       });
     });
 }
+//       orders.forEach(order => {
+//         container.innerHTML += `
+//           <p>Order #${order.order_id}: ${order.customer_name} ordered ${order.quantity} x ${order.product_name} (${order.variant_size || 'Unknown size'}) totaling $${order.subtotal ? order.subtotal.toFixed(2) : '0.00'} on ${new Date(order.date).toLocaleDateString()}</p>        `;
+//       });
+//     });
+// }
 
 
 

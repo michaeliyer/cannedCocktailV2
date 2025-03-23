@@ -60,22 +60,3 @@ CREATE TABLE IF NOT EXISTS customers (
   notes TEXT
 );
 
--- CREATE TABLE IF NOT EXISTS orders (
---   order_id INTEGER PRIMARY KEY AUTOINCREMENT,
---   customer_id INTEGER NOT NULL,
---   variant_id INTEGER NOT NULL,
---   quantity INTEGER NOT NULL,
---   order_date TEXT DEFAULT CURRENT_TIMESTAMP,
---   FOREIGN KEY (customer_id) REFERENCES customers(customer_id),
---   FOREIGN KEY (variant_id) REFERENCES product_variants(variant_id)
--- );
-
--- CREATE TABLE orders (
---     order_id INTEGER PRIMARY KEY AUTOINCREMENT,
---     customer_id INTEGER NOT NULL,
---     order_date TEXT DEFAULT CURRENT_TIMESTAMP,
---     total_price REAL,
---     payments REAL,
---     balance REAL,
---     FOREIGN KEY (customer_id) REFERENCES customers (customer_id)
--- );
