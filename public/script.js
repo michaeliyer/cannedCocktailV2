@@ -606,6 +606,29 @@ document.getElementById('fetchReportBtn').addEventListener('click', () => {
     });
 });
 
+
+document.getElementById('fetchReportBtn').addEventListener('click', () => {
+  const startDate = document.getElementById('startDate').value;
+  const endDate = document.getElementById('endDate').value;
+
+  if (!startDate || !endDate) {
+    alert("Please select both start and end dates!");
+    return;
+  }
+
+  // Make a request to server
+  fetch(`/sales-report?startDate=${startDate}&endDate=${endDate}`)
+    .then(res => res.json())
+    .then(data => {
+      displaySalesReport(data);
+      console.log("Fetching report for:", startDate, "to", endDate);
+    })
+    .catch(err => {
+      console.error("Error fetching report:", err);
+      alert("Failed to fetch sales report.");
+    });
+});
+
 document.getElementById('fetchDailyBtn').addEventListener('click', () => {
   const reportDate = document.getElementById('reportDate').value;
 
@@ -624,18 +647,34 @@ document.getElementById('fetchDailyBtn').addEventListener('click', () => {
 // Function to display (basic version)
 function displayDailyReport(data) {
   const reportDiv = document.getElementById('dailyReport');
-  reportDiv.innerHTML = "<h3>Daily Report:</h3>";
+  reportDiv.innerHTML = '';
 
   if (data.length === 0) {
-    reportDiv.innerHTML += "<p>No sales for this day.</p>";
+    reportDiv.textContent = "No sales data for the selected date.";
     return;
   }
 
-  data.forEach(order => {
-    reportDiv.innerHTML += `<p>Order #${order.order_id} - ${order.customer_name} - $${order.total_price}</p>`;
-  });
-}
+  let totalSales = 0;
 
+  data.forEach(order => {
+    totalSales += order.subtotal || 0;
+
+    const orderDiv = document.createElement('div');
+    orderDiv.innerHTML = `
+      <p><strong>Order ID:</strong> ${order.order_id}</p>
+      <p><strong>Customer:</strong> ${order.customer_name}</p>
+      <p><strong>Product:</strong> ${order.product_name} (${order.variant_size})</p>
+      <p><strong>Quantity:</strong> ${order.quantity}</p>
+      <p><strong>Subtotal:</strong> $${order.subtotal ? order.subtotal.toFixed(2) : '0.00'}</p>
+      <p><strong>Date:</strong> ${new Date(order.date).toLocaleDateString()}</p>
+      <hr>
+    `;
+    reportDiv.appendChild(orderDiv);
+  });
+
+  // Total at top:
+  reportDiv.innerHTML = `<h3>Total Sales: $${totalSales.toFixed(2)}</h3>` + reportDiv.innerHTML;
+}
 
 function displaySalesReport(data) {
   const reportDiv = document.getElementById('salesReport');
@@ -646,7 +685,19 @@ function displaySalesReport(data) {
     return;
   }
 
+  const totalSales = data.reduce((sum, order) => sum + order.total_price, 0);
+
+  reportDiv.innerHTML = `<h3>Total Sales: $${totalSales.toFixed(2)}</h3>`;
+
   data.forEach(order => {
-    reportDiv.innerHTML += `<p>Order #${order.order_id}: ${order.customer_name} - Total: $${order.total_price}</p>`;
+    const orderDiv = document.createElement('div');
+    orderDiv.innerHTML = `
+      <p><strong>Order ID:</strong> ${order.order_id}</p>
+      <p><strong>Customer Name:</strong> ${order.customer_name}</p>
+      <p><strong>Total Price:</strong> $${order.total_price.toFixed(2)}</p>
+      <p><strong>Date:</strong> ${new Date(order.date).toLocaleDateString()}</p>
+      <hr>
+    `;
+    reportDiv.appendChild(orderDiv);
   });
 }

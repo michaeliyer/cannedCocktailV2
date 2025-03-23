@@ -334,16 +334,39 @@ app.get('/sales-report', (req, res) => {
   ]);
 });
 
+
 app.get('/daily-report', (req, res) => {
   const { date } = req.query;
 
-  console.log("Generating daily report for:", date);
+  const query = `
+    SELECT 
+      o.order_id,
+      o.date,
+      c.name AS customer_name,
+      p.name AS product_name,
+      v.size AS variant_size,
+      oi.quantity,
+      oi.subtotal
+    FROM orders o
+    JOIN customers c ON o.customer_id = c.customer_id
+    JOIN order_items oi ON o.order_id = oi.order_id
+    JOIN product_variants v ON oi.variant_id = v.variant_id
+    JOIN products p ON v.product_id = p.product_id
+    WHERE DATE(o.date) = DATE(?)
+    ORDER BY o.order_id DESC;
+  `;
 
-  // Temporary dummy data to test front end:
-  res.json([
-    { order_id: 5, customer_name: "Daily Customer", total_price: 45.67, date: date }
-  ]);
-});
+  db.all(query, [date], (err, rows) => {
+    if (err) {
+      console.error("Error fetching daily report:", err.message);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(rows);
+  }); // ✅ Correct closure here
+}); // ✅ Only ONE closing brace needed for route
+
+
+
 
 // --- SERVER LISTEN ---
 app.listen(3000, () => {
