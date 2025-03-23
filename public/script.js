@@ -92,8 +92,7 @@ function loadProducts() {
               variants.forEach(variant => {
                 variantsDiv.innerHTML += `
                   <p>
-                    Size: ${variant.size}, Price: $${variant.unit_price}, Stock: ${variant.units_in_stock}, SKU: ${variant.sku}
-                    <button class="edit-variant-btn" 
+                      Size: ${variant.size}, Price: $${variant.unit_price}, Stock: ${variant.units_in_stock}, Sold: ${variant.units_sold}, SKU: ${variant.sku}                    <button class="edit-variant-btn" 
                       data-vid="${variant.variant_id}" 
                       data-pid="${productId}" 
                       data-size="${variant.size}" 
@@ -320,6 +319,7 @@ document.getElementById('viewInventory').addEventListener('click', () => {
                 <th>SKU</th>
                 <th>Unit Price ($)</th>
                 <th>Units In Stock</th>
+                <th>Units Sold</th>
               </tr>
             </thead>
             <tbody>
@@ -338,6 +338,8 @@ document.getElementById('viewInventory').addEventListener('click', () => {
             <td>${row.sku}</td>
             <td>${row.unit_price.toFixed(2)}</td>
             <td>${row.units_in_stock}</td>
+            <td>${row.units_sold}</td>
+
           `;
           tbody.appendChild(tr);
           totalStock += row.units_in_stock;
@@ -575,4 +577,3 @@ document.getElementById('orderForm').addEventListener('submit', (e) => {
 // Initial load
 loadOrderFormDropdowns();
 loadOrders();
-

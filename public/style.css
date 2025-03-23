@@ -2,7 +2,8 @@ body {
     font-family: sans-serif;
     padding: 2rem;
     /* background: #f9f9f9; */
-    background: #0a95bc;
+    color: rgb(207, 39, 39);
+    background: #000000;
   }
   
   h1 {

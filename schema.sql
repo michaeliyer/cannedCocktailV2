@@ -22,6 +22,7 @@ CREATE TABLE product_variants (
     size TEXT,
     unit_price REAL,
     units_in_stock INTEGER,
+    units_sold INTEGER DEFAULT 0, -- Add this line
     sku TEXT UNIQUE,
     FOREIGN KEY (product_id) REFERENCES products (product_id)
 );
