@@ -3,26 +3,79 @@
 <head>
   <meta charset="UTF-8">
   <title>Canned Cocktails V2</title>
-  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Signika:wght@300..700&display=swap" rel="stylesheet">
+
+  <link href="style.css" rel="stylesheet" type="text/css" >
 </head>
 <body>
+
   <h1>Canned Cocktail Inventory</h1>
 
+  <hr></hr>
+  <hr></hr>
+  <hr></hr>
+  <hr></hr>
+
+  <h2 class="subHeads">Add New Customer</h2>
+  <form id="customerForm">
+    <input type="text" id="cust_name" placeholder="Customer Name" required>
+    <input type="email" id="cust_email" placeholder="Email">
+    <input type="text" id="cust_phone" placeholder="Phone">
+    <input type="text" id="cust_notes" placeholder="Notes">
+    <button type="submit">Add Customer</button>
+  </form>
+
+  <hr></hr>
+  <hr></hr>
+
+  <h2 class="subHeads">Customers</h2>
+  <div id="customers"></div>
+  
+  <hr></hr>
+  <hr></hr>
+  <hr></hr>
+
+
+
+  <h2 class="subHeads">Add New Product</h2>
+
+  <form id="productForm">
+
+    <input type="text" id="name" placeholder="Product Name" required>
+    <input type="text" id="description" placeholder="Description">
+    <input type="text" id="category" placeholder="Category">
+    <button type="submit">Add Product</button>
+  </form>
+  
+  <hr></hr>
+  <hr></hr>
+
   <div id="product-section">
-    <h2>Products</h2>
+    <h2 class="subHeads">Products</h2>
     <div id="products"></div>
-    <h2>Add New Product</h2>
-<form id="productForm">
-  <input type="text" id="name" placeholder="Product Name" required>
-  <input type="text" id="description" placeholder="Description">
-  <input type="text" id="category" placeholder="Category">
-  <button type="submit">Add Product</button>
-</form>
+
+<hr></hr>
+<hr></hr>
 <hr></hr>
 
-<h2>Customers</h2>
-<div id="customers"></div>
-<h2>Add New Customer</h2>
+<h2 class="subHeads">Add Variant</h2>
+<form id="variantForm">
+  <select id="productSelect" required>
+    <option value="">Select Product</option>
+  </select><br>
+  <input type="text" id="size" placeholder="Size (e.g., 330ml)" required>
+  <input type="number" id="unit_price" placeholder="Unit Price" step="0.01" required>
+  <input type="number" id="units_in_stock" placeholder="Units in Stock" required>
+  <input type="text" id="sku" placeholder="SKU" required>
+  <button type="submit">Add Variant</button>
+</form>
+
+<hr></hr>
+<hr></hr>
+<hr></hr>
+<hr></hr>
+
+<!-- <h2 class="subHeads">Add New Customer</h2>
 <form id="customerForm">
   <input type="text" id="cust_name" placeholder="Customer Name" required>
   <input type="email" id="cust_email" placeholder="Email">
@@ -31,14 +84,20 @@
   <button type="submit">Add Customer</button>
 </form>
 <hr></hr>
+<hr></hr>
 
-<h2>Place New Order</h2>
+<h2 class="subHeads">Customers</h2>
+<div id="customers"></div>
 
+<hr></hr>
+<hr></hr> -->
+
+<h2 class="subHeads">Place New Order</h2>
 <form id="orderForm">
   <label for="orderCustomerSelect">Customer:</label>
   <select id="orderCustomerSelect" required>
     <option value="">Select Customer</option>
-  </select><br>
+  </select>
 
   <label for="orderVariantSelect">Product Variant:</label>
   <select id="orderVariantSelect" required>
@@ -51,7 +110,8 @@
   <button type="submit">Place Order</button>
 </form>
 
-<hr>
+<hr></hr>
+<hr></hr>
 
 <div id="orders">
   <h3>Orders:</h3>
@@ -59,42 +119,68 @@
 </div>
 
 <hr></hr>
-<h2>Add Variant</h2>
-<form id="variantForm">
-  <select id="productSelect" required>
-    <option value="">Select Product</option>
-  </select><br>
-  <input type="text" id="size" placeholder="Size (e.g., 330ml)" required>
-  <input type="number" id="unit_price" placeholder="Unit Price" step="0.01" required>
-  <input type="number" id="units_in_stock" placeholder="Units in Stock" required>
-  <input type="text" id="sku" placeholder="SKU" required>
-  <button type="submit">Add Variant</button>
-</form>
+<hr></hr>
+<hr></hr>
+<hr></hr>
+
   </div>
-  <hr></hr>
+
   
-  <h2>Full Inventory Summary</h2>
+  <h2 class="subHeads">Full Inventory Summary</h2>
   <button id="viewInventory">View this Inventory</button>
   <div id="inventoryTable" class="inventory-container"></div>
 
+  <hr></hr>
+  <hr></hr>
+  <hr></hr>
+  <hr></hr>
+
   <!-- Future: Add Forms and Order Sections -->
   <section id="daily-report-section">
-    <h2>Daily Report</h2>
+    <h2 class="subHeads">Daily Report</h2>
     <label for="reportDate">Select Date:</label>
     <input type="date" id="reportDate">
     <button id="fetchDailyBtn">Fetch Daily Report</button>
     <div id="dailyReport"></div>
   </section>
 
-  <section id="sales-report-section">
-    <h2>Sales Report</h2>
-    <label for="startDate">Start Date:</label>
-    <input type="date" id="startDate">
-    <label for="endDate">End Date:</label>
-    <input type="date" id="endDate">
-    <button id="fetchReportBtn">Fetch Report</button>
-    <div id="salesReport"></div>
-  </section>
+  <hr></hr>
+  <hr></hr>
+  <hr></hr>
+  <hr></hr>
+
+<section id="sales-report-section">
+  <h2 class="subHeads">Sales Report</h2>
+
+  <label for="startDate">Start Date:</label>
+  <input type="date" id="startDate">
+
+  <label for="endDate">End Date:</label>
+  <input type="date" id="endDate">
+
+  <label for="customerSelect">Customer:</label>
+  <select id="customerSelect">
+    <option value="">All Customers</option>
+  </select>
+
+  <label for="productSelect">Product:</label>
+  <select id="productSelect">
+    <option value="">All Products</option>
+  </select>
+
+  <label for="variantSelect">Variant:</label>
+  <select id="variantSelect">
+    <option value="">All Variants</option>
+  </select>
+
+  <button id="fetchReportBtn">Fetch Report</button>
+  <div id="dailyReport"></div>
+</section>
+
+<hr></hr>
+<hr></hr>
+<hr></hr>
+<hr></hr>
 
   <script src="script.js"></script>
 </body>

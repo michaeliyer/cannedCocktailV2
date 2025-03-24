@@ -1,12 +1,13 @@
 body {
-    font-family: sans-serif;
+    font-family: "Signika", sans-serif;
+    font-weight: 500;
     padding: 2rem;
-    /* background: #f9f9f9; */
-    color: rgb(144, 26, 26);
+    color: #b2b2b2;
     background: #000000;
   }
   
   h1 {
+    font-size: 3rem;
     margin-bottom: 1rem;
   }
   
@@ -15,6 +16,14 @@ body {
     padding: 0.5rem 1rem;
     cursor: pointer;
   }
+
+  .subHeads {
+    font-family: "Archivo Black", sans-serif;
+    font-size: 2.25rem;
+    font-style: oblique;
+    color: #b2b2b2;
+  }
+
   form {
     margin-top: 1rem;
   }
@@ -53,4 +62,8 @@ body {
   .inventory-table tr:last-child td {
     background-color: #e0ffe0;
     font-weight: bold;
+  }
+
+  #orders {
+    font-style: italic;
   }
