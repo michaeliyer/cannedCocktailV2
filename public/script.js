@@ -69,6 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadCustomers();
   loadOrders();
   loadOrderFormDropdowns();
+  loadProductVariants();
   loadInventory();
 });
 
@@ -345,36 +346,247 @@ custForm.addEventListener("submit", (e) => {
 // === INITIAL LOAD ===
 loadCustomers();
 
-function loadOrders() {
-  fetch("/orders")
-    .then((res) => res.json())
-    .then((orders) => {
-      const container = document.getElementById("orders");
-      container.innerHTML = "<h3>All Orders</h3>";
+// Order form handler
+document.getElementById("orderForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-      if (orders.length === 0) {
-        container.innerHTML += "<p>No orders yet.</p>";
-        return;
-      }
+  const customerId = document.getElementById("orderCustomerSelect").value;
+  const paymentAmount =
+    parseFloat(document.getElementById("orderPayment").value) || 0;
 
-      orders.forEach((order) => {
-        container.innerHTML += `
-          <p>Order #${order.order_id}: ${order.customer_name} ordered ${
-          order.quantity
-        } x ${order.product_name} (${
-          order.variant_size || "Unknown size"
-        }) totaling $${order.subtotal} on ${new Date(
-          order.date
-        ).toLocaleDateString()}</p>        `;
-      });
+  if (!customerId) {
+    alert("Please select a customer");
+    return;
+  }
+
+  const items = [];
+  const itemRows = document.querySelectorAll(".order-item-row");
+
+  itemRows.forEach((row) => {
+    const variantId = row.querySelector(".variant-select").value;
+    const quantity = parseInt(row.querySelector(".quantity-input").value);
+    if (variantId && quantity > 0) {
+      items.push({ variant_id: variantId, quantity: quantity });
+    }
+  });
+
+  if (items.length === 0) {
+    alert("Please add at least one item to the order");
+    return;
+  }
+
+  try {
+    const response = await fetch("/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        customer_id: customerId,
+        items: items,
+        payment: paymentAmount,
+      }),
     });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Failed to create order");
+    }
+
+    const result = await response.json();
+    alert("Order created successfully!");
+    document.getElementById("orderForm").reset();
+    loadOrders();
+  } catch (error) {
+    console.error("Error creating order:", error);
+    alert(error.message);
+  }
+});
+
+// Load orders
+async function loadOrders() {
+  try {
+    const response = await fetch("/orders");
+    if (!response.ok) throw new Error("Failed to fetch orders");
+    const data = await response.json();
+
+    const ordersTable = document.getElementById("ordersTable");
+    if (!ordersTable) return;
+
+    if (data.orders.length === 0) {
+      ordersTable.innerHTML = "<p>No orders found</p>";
+      return;
+    }
+
+    const table = document.createElement("table");
+    table.innerHTML = `
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Date</th>
+          <th>Customer</th>
+          <th>Product</th>
+          <th>Size</th>
+          <th>Quantity</th>
+          <th>Unit Price</th>
+          <th>Subtotal</th>
+          <th>Total</th>
+          <th>Payments</th>
+          <th>Balance</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${data.orders
+          .map(
+            (order) => `
+          <tr>
+            <td>${order.order_id}</td>
+            <td>${new Date(order.date).toLocaleString()}</td>
+            <td>${order.customer_name}</td>
+            <td>${order.product_name}</td>
+            <td>${order.variant_size}</td>
+            <td>${order.quantity}</td>
+            <td>$${order.unit_price}</td>
+            <td>$${order.subtotal}</td>
+            <td>$${order.total_price}</td>
+            <td>$${order.payments}</td>
+            <td>$${order.balance}</td>
+            <td><span class="status-badge ${order.order_status}">${
+              order.order_status
+            }</span></td>
+          </tr>
+        `
+          )
+          .join("")}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="5"><strong>Totals:</strong></td>
+          <td>${data.totals.totalQuantity}</td>
+          <td></td>
+          <td></td>
+          <td>$${data.totals.totalSales}</td>
+          <td>$${data.totals.totalPayments}</td>
+          <td>$${data.totals.totalBalance}</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    `;
+    ordersTable.innerHTML = "";
+    ordersTable.appendChild(table);
+  } catch (error) {
+    console.error("Error loading orders:", error);
+    const ordersTable = document.getElementById("ordersTable");
+    if (ordersTable) {
+      ordersTable.innerHTML = "<p>Error loading orders</p>";
+    }
+  }
 }
-//       orders.forEach(order => {
-//         container.innerHTML += `
-//           <p>Order #${order.order_id}: ${order.customer_name} ordered ${order.quantity} x ${order.product_name} (${order.variant_size || 'Unknown size'}) totaling $${order.subtotal ? order.subtotal.toFixed(2) : '0.00'} on ${new Date(order.date).toLocaleDateString()}</p>        `;
-//       });
-//     });
-// }
+
+// Load product variants for order form
+async function loadProductVariants() {
+  try {
+    const response = await fetch("/products");
+    const products = await response.json();
+
+    const orderItemsContainer = document.getElementById("orderItemsContainer");
+    if (!orderItemsContainer) {
+      console.error("Order items container not found");
+      return;
+    }
+
+    // Clear existing items
+    orderItemsContainer.innerHTML = "";
+
+    // Create initial row
+    const initialRow = createOrderItemRow();
+    orderItemsContainer.appendChild(initialRow);
+
+    // Get all variant dropdowns
+    const variantDropdowns = document.querySelectorAll(".variant-select");
+    if (variantDropdowns.length === 0) {
+      console.error("No variant dropdowns found");
+      return;
+    }
+
+    // Clear all dropdowns first
+    variantDropdowns.forEach((dropdown) => {
+      dropdown.innerHTML = '<option value="">Select a product variant</option>';
+    });
+
+    // Load variants for each product
+    for (const product of products) {
+      try {
+        const variantResponse = await fetch(
+          `/products/${product.product_id}/variants`
+        );
+        if (!variantResponse.ok) {
+          throw new Error(
+            `Failed to fetch variants for product ${product.product_id}`
+          );
+        }
+        const variants = await variantResponse.json();
+
+        // Add product header option
+        variantDropdowns.forEach((dropdown) => {
+          const productOption = document.createElement("option");
+          productOption.value = "";
+          productOption.textContent = `-- ${product.name} --`;
+          productOption.disabled = true;
+          dropdown.appendChild(productOption);
+
+          // Add variant options
+          variants.forEach((variant) => {
+            const option = document.createElement("option");
+            option.value = variant.variant_id;
+            option.textContent = `${product.name} - ${variant.size} (${variant.units_in_stock} in stock)`;
+            option.disabled = variant.units_in_stock <= 0;
+            dropdown.appendChild(option);
+          });
+        });
+      } catch (error) {
+        console.error(
+          `Error loading variants for product ${product.product_id}:`,
+          error
+        );
+      }
+    }
+  } catch (error) {
+    console.error("Error loading product variants:", error);
+    showNotification("Error loading product variants", "error");
+  }
+}
+
+function createOrderItemRow() {
+  const row = document.createElement("div");
+  row.className = "order-item-row";
+
+  row.innerHTML = `
+    <select class="form-control variant-select" required>
+      <option value="">Select a product variant</option>
+    </select>
+    <input type="number" class="form-control quantity-input" min="1" value="1" required>
+    <button type="button" class="remove-item" onclick="this.parentElement.remove()">Remove</button>
+  `;
+
+  return row;
+}
+
+// Add order item row
+function addOrderItemRow() {
+  const orderItemsContainer = document.getElementById("orderItemsContainer");
+  const newRow = createOrderItemRow();
+  orderItemsContainer.appendChild(newRow);
+  loadProductVariants(); // Reload variants for the new row
+}
+
+// Remove order item row
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("remove-item")) {
+    e.target.parentElement.remove();
+  }
+});
 
 function loadOrderFormDropdowns() {
   // Load customers
@@ -382,82 +594,18 @@ function loadOrderFormDropdowns() {
     .then((res) => res.json())
     .then((customers) => {
       const custSelect = document.getElementById("orderCustomerSelect");
-      custSelect.innerHTML = '<option value="">Select Customer</option>';
-      customers.forEach((cust) => {
-        const opt = document.createElement("option");
-        opt.value = cust.customer_id;
-        opt.textContent = cust.name;
-        custSelect.appendChild(opt);
-      });
-    });
-
-  // Load variants with availability
-  fetch("/products")
-    .then((res) => res.json())
-    .then((products) => {
-      const variantSelect = document.getElementById("orderVariantSelect");
-      variantSelect.innerHTML =
-        '<option value="">Select Product Variant</option>';
-
-      products.forEach((prod) => {
-        fetch(`/products/${prod.product_id}/variants`)
-          .then((res) => res.json())
-          .then((variants) => {
-            variants.forEach((variant) => {
-              const opt = document.createElement("option");
-              opt.value = variant.variant_id;
-              opt.textContent = `${prod.name} - ${variant.size} (${variant.units_in_stock} in stock)`;
-              opt.disabled = variant.units_in_stock <= 0;
-              variantSelect.appendChild(opt);
-            });
-          });
-      });
-    });
-}
-
-// Handle Order Form Submit
-document.getElementById("orderForm").addEventListener("submit", (e) => {
-  e.preventDefault();
-
-  const customerId = parseInt(
-    document.getElementById("orderCustomerSelect").value
-  );
-  const variantId = parseInt(
-    document.getElementById("orderVariantSelect").value
-  );
-  const quantity = parseInt(document.getElementById("orderQuantity").value);
-
-  // Simple version: One variant per order
-  const orderData = {
-    customer_id: customerId,
-    items: [
-      {
-        variant_id: variantId,
-        quantity: quantity,
-      },
-    ],
-  };
-
-  console.log("Submitting order:", orderData);
-
-  fetch("/orders", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(orderData),
-  })
-    .then((res) => res.json())
-    .then((data) => {
-      console.log("Server responded:", data);
-      alert(data.message);
-      document.getElementById("orderForm").reset();
-      loadOrders();
-      loadProducts();
+      if (custSelect) {
+        custSelect.innerHTML = '<option value="">Select Customer</option>';
+        customers.forEach((cust) => {
+          const opt = document.createElement("option");
+          opt.value = cust.customer_id;
+          opt.textContent = cust.name;
+          custSelect.appendChild(opt);
+        });
+      }
     })
-    .catch((err) => console.error("Error submitting order:", err));
-});
-// Initial load
-loadOrderFormDropdowns();
-loadOrders();
+    .catch((err) => console.error("Error loading customers:", err));
+}
 
 // Function to display report data
 function displayReportData(data, targetDiv) {

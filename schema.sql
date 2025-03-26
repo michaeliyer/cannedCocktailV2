@@ -36,6 +36,7 @@ CREATE TABLE orders (
     total_price REAL,
     payments REAL,
     balance REAL,
+    order_status TEXT DEFAULT 'open',
     FOREIGN KEY (customer_id) REFERENCES customers (customer_id)
 );
 

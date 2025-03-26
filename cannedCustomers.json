@@ -1,0 +1,454 @@
+{
+  "products": [
+    {
+      "product_id": 1,
+      "name": "Caesar",
+      "description": "Clamato Delight",
+      "category": "Drinkers Drink - Hair of the Dog"
+    },
+    {
+      "product_id": 2,
+      "name": "Gimlet",
+      "description": "Gin refresher",
+      "category": "Summery Treat"
+    },
+    {
+      "product_id": 3,
+      "name": "Tequila With Lime",
+      "description": "Nice Mexican Treat",
+      "category": "Tequila Summer BeveraGE"
+    },
+    {
+      "product_id": 4,
+      "name": "Rum Classic",
+      "description": "Smooth and fragrant",
+      "category": "Drinker's drink"
+    },
+    {
+      "product_id": 5,
+      "name": "Red Wine Spritzer",
+      "description": "Red and bubbly",
+      "category": "Apperitif"
+    },
+    {
+      "product_id": 6,
+      "name": "Campari á là Franka",
+      "description": "A bitter treat",
+      "category": "Anniversary Drink"
+    },
+    {
+      "product_id": 7,
+      "name": "Gin Smash",
+      "description": "Gin refresher",
+      "category": "Summer Drinks"
+    },
+    {
+      "product_id": 8,
+      "name": "Rose Wine Punch",
+      "description": "Light low alcohol beverage",
+      "category": "For Morning Drinkers"
+    }
+  ],
+  "variants": [
+    {
+      "variant_id": 2,
+      "product_id": 2,
+      "size": "8 oz",
+      "unit_price": 10,
+      "units_in_stock": 11,
+      "units_sold": 9,
+      "sku": "0002"
+    },
+    {
+      "variant_id": 3,
+      "product_id": 3,
+      "size": "20 oz.",
+      "unit_price": 10,
+      "units_in_stock": 19,
+      "units_sold": 11,
+      "sku": "0003"
+    },
+    {
+      "variant_id": 4,
+      "product_id": 4,
+      "size": "20 oz.",
+      "unit_price": 12,
+      "units_in_stock": 16,
+      "units_sold": 4,
+      "sku": "0004"
+    },
+    {
+      "variant_id": 5,
+      "product_id": 4,
+      "size": ".5 gallon",
+      "unit_price": 25,
+      "units_in_stock": 5,
+      "units_sold": 5,
+      "sku": "0005"
+    },
+    {
+      "variant_id": 6,
+      "product_id": 5,
+      "size": "1 gallon",
+      "unit_price": 50,
+      "units_in_stock": 11,
+      "units_sold": 9,
+      "sku": "0006"
+    },
+    {
+      "variant_id": 7,
+      "product_id": 1,
+      "size": "6 oz.",
+      "unit_price": 40,
+      "units_in_stock": 12,
+      "units_sold": 0,
+      "sku": "0014"
+    },
+    {
+      "variant_id": 8,
+      "product_id": 7,
+      "size": "6 oz.",
+      "unit_price": 7,
+      "units_in_stock": 3,
+      "units_sold": 3,
+      "sku": "0100"
+    },
+    {
+      "variant_id": 9,
+      "product_id": 8,
+      "size": "5 gallon",
+      "unit_price": 250,
+      "units_in_stock": 8,
+      "units_sold": 2,
+      "sku": "0022"
+    }
+  ],
+  "customers": [
+    {
+      "customer_id": 1,
+      "name": "Bird",
+      "email": "bird@yahoo.org",
+      "phone": "555-555-5555",
+      "notes": "Very cool!"
+    },
+    {
+      "customer_id": 2,
+      "name": "Franky",
+      "email": "Franky@daycare.org",
+      "phone": "555-888-5555",
+      "notes": "Very cool!"
+    },
+    {
+      "customer_id": 3,
+      "name": "Johnny Jones",
+      "email": "JonesPlowingandHeating@yahoo.com",
+      "phone": "998-555-5555",
+      "notes": "Mean guy but bad"
+    },
+    {
+      "customer_id": 4,
+      "name": "John Wiley",
+      "email": "wiley@gmail.com",
+      "phone": "888-555-5555",
+      "notes": "Mean guy but sad"
+    },
+    {
+      "customer_id": 5,
+      "name": "Filipé McKracken",
+      "email": "mckrackisback@ether.com",
+      "phone": "998-555-5555",
+      "notes": "Horribly cheap bastard"
+    },
+    {
+      "customer_id": 6,
+      "name": "Jaden O'Connor",
+      "email": "jadensucks@losermail.org",
+      "phone": "219-222-1237",
+      "notes": "Not Nice, pays late!"
+    },
+    {
+      "customer_id": 7,
+      "name": "Al Olander",
+      "email": "olander25@somewhere.gov",
+      "phone": "767-432-5432",
+      "notes": "Relapsed drunk so keep an eye out!"
+    },
+    {
+      "customer_id": 8,
+      "name": "Kelley Hollard",
+      "email": "Hollard@junkmail.edu",
+      "phone": "283-985-1209",
+      "notes": "So funny, great boss!"
+    },
+    {
+      "customer_id": 9,
+      "name": "Michael Iyer",
+      "email": "mji@gspot.org",
+      "phone": "888-555-5555",
+      "notes": "Very cool!"
+    },
+    {
+      "customer_id": 10,
+      "name": "Chris Smith III",
+      "email": "wiley@gmail.com",
+      "phone": "555-888-5555",
+      "notes": "Very cool!"
+    },
+    {
+      "customer_id": 11,
+      "name": "Konner Keller",
+      "email": "harlow@thedungeon.edu",
+      "phone": "219-222-1237",
+      "notes": "Very cool!"
+    },
+    {
+      "customer_id": 12,
+      "name": "Xaviar Condor",
+      "email": "condor@theWetBlanket.org",
+      "phone": "555-888-5555",
+      "notes": "Very cool!"
+    },
+    {
+      "customer_id": 13,
+      "name": "Linda ",
+      "email": "Rafael@home.gov",
+      "phone": "Rafael",
+      "notes": "Cool and Fun...Happy"
+    },
+    {
+      "customer_id": 14,
+      "name": "Jonny Ingals",
+      "email": "ingram@deepend.com",
+      "phone": "998-555-5555",
+      "notes": "Enjoy drinks with Jonno"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": 1,
+      "customer_id": 1,
+      "date": "2025-03-23T07:41:38.650Z",
+      "total_price": null,
+      "payments": null,
+      "balance": null
+    },
+    {
+      "order_id": 2,
+      "customer_id": 2,
+      "date": "2025-03-23T07:41:48.638Z",
+      "total_price": null,
+      "payments": null,
+      "balance": null
+    },
+    {
+      "order_id": 3,
+      "customer_id": 2,
+      "date": "2025-03-23T07:45:55.548Z",
+      "total_price": null,
+      "payments": null,
+      "balance": null
+    },
+    {
+      "order_id": 4,
+      "customer_id": 1,
+      "date": "2025-03-23T17:52:27.923Z",
+      "total_price": null,
+      "payments": null,
+      "balance": null
+    },
+    {
+      "order_id": 5,
+      "customer_id": 4,
+      "date": "2025-03-24T04:09:51.891Z",
+      "total_price": null,
+      "payments": null,
+      "balance": null
+    },
+    {
+      "order_id": 6,
+      "customer_id": 5,
+      "date": "2025-03-24T04:11:23.606Z",
+      "total_price": null,
+      "payments": null,
+      "balance": null
+    },
+    {
+      "order_id": 7,
+      "customer_id": 6,
+      "date": "2025-03-24T16:50:52.727Z",
+      "total_price": null,
+      "payments": null,
+      "balance": null
+    },
+    {
+      "order_id": 8,
+      "customer_id": 7,
+      "date": "2025-03-24T17:45:05.537Z",
+      "total_price": null,
+      "payments": null,
+      "balance": null
+    },
+    {
+      "order_id": 9,
+      "customer_id": 3,
+      "date": "2025-03-24T18:20:00.682Z",
+      "total_price": null,
+      "payments": null,
+      "balance": null
+    },
+    {
+      "order_id": 10,
+      "customer_id": 8,
+      "date": "2025-03-25T03:59:52.984Z",
+      "total_price": null,
+      "payments": null,
+      "balance": null
+    },
+    {
+      "order_id": 11,
+      "customer_id": 2,
+      "date": "2025-03-25T04:44:44.279Z",
+      "total_price": null,
+      "payments": null,
+      "balance": null
+    },
+    {
+      "order_id": 12,
+      "customer_id": 10,
+      "date": "2025-03-25T19:47:46.199Z",
+      "total_price": null,
+      "payments": null,
+      "balance": null
+    },
+    {
+      "order_id": 13,
+      "customer_id": 3,
+      "date": "2025-03-26T06:54:48.059Z",
+      "total_price": null,
+      "payments": null,
+      "balance": null
+    },
+    {
+      "order_id": 14,
+      "customer_id": 2,
+      "date": "2025-03-26T06:55:41.170Z",
+      "total_price": null,
+      "payments": null,
+      "balance": null
+    }
+  ],
+  "orderItems": [
+    {
+      "order_item_id": 1,
+      "order_id": 1,
+      "product_id": 2,
+      "variant_id": 2,
+      "quantity": 2,
+      "subtotal": 20
+    },
+    {
+      "order_item_id": 2,
+      "order_id": 2,
+      "product_id": 1,
+      "variant_id": 1,
+      "quantity": 3,
+      "subtotal": 30
+    },
+    {
+      "order_item_id": 3,
+      "order_id": 3,
+      "product_id": 3,
+      "variant_id": 3,
+      "quantity": 4,
+      "subtotal": 40
+    },
+    {
+      "order_item_id": 4,
+      "order_id": 4,
+      "product_id": 2,
+      "variant_id": 2,
+      "quantity": 3,
+      "subtotal": 30
+    },
+    {
+      "order_item_id": 5,
+      "order_id": 5,
+      "product_id": 4,
+      "variant_id": 4,
+      "quantity": 4,
+      "subtotal": 48
+    },
+    {
+      "order_item_id": 6,
+      "order_id": 6,
+      "product_id": 4,
+      "variant_id": 5,
+      "quantity": 2,
+      "subtotal": 50
+    },
+    {
+      "order_item_id": 7,
+      "order_id": 7,
+      "product_id": 3,
+      "variant_id": 3,
+      "quantity": 4,
+      "subtotal": 40
+    },
+    {
+      "order_item_id": 8,
+      "order_id": 8,
+      "product_id": 5,
+      "variant_id": 6,
+      "quantity": 4,
+      "subtotal": 200
+    },
+    {
+      "order_item_id": 9,
+      "order_id": 9,
+      "product_id": 5,
+      "variant_id": 6,
+      "quantity": 5,
+      "subtotal": 250
+    },
+    {
+      "order_item_id": 10,
+      "order_id": 10,
+      "product_id": 2,
+      "variant_id": 2,
+      "quantity": 4,
+      "subtotal": 40
+    },
+    {
+      "order_item_id": 11,
+      "order_id": 11,
+      "product_id": 4,
+      "variant_id": 5,
+      "quantity": 3,
+      "subtotal": 75
+    },
+    {
+      "order_item_id": 12,
+      "order_id": 12,
+      "product_id": 7,
+      "variant_id": 8,
+      "quantity": 3,
+      "subtotal": 21
+    },
+    {
+      "order_item_id": 13,
+      "order_id": 13,
+      "product_id": 3,
+      "variant_id": 3,
+      "quantity": 3,
+      "subtotal": 30
+    },
+    {
+      "order_item_id": 14,
+      "order_id": 14,
+      "product_id": 8,
+      "variant_id": 9,
+      "quantity": 2,
+      "subtotal": 500
+    }
+  ]
+}

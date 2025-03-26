@@ -214,17 +214,53 @@ app.delete("/customers/:id", (req, res) => {
 
 // --- Orders ---
 app.post("/orders", async (req, res) => {
-  const { customer_id, items, total_price, payments, balance } = req.body;
+  const { customer_id, items, payment } = req.body;
   const date = new Date().toISOString();
+  let total_price = 0;
+  const payment_amount = parseFloat(payment) || 0;
 
   try {
     await db.run("BEGIN TRANSACTION");
 
+    // Calculate total price and validate inventory
+    for (const item of items) {
+      const { variant_id, quantity } = item;
+
+      // Check inventory and get pricing
+      const variant = await new Promise((resolve, reject) => {
+        db.get(
+          "SELECT product_id, unit_price, units_in_stock FROM product_variants WHERE variant_id = ?",
+          [variant_id],
+          (err, row) => {
+            if (err) return reject(err);
+            if (!row)
+              return reject(
+                new Error(`No product found for variant_id ${variant_id}`)
+              );
+            if (row.units_in_stock < quantity) {
+              return reject(
+                new Error(`Insufficient stock for variant_id ${variant_id}`)
+              );
+            }
+            resolve(row);
+          }
+        );
+      });
+
+      total_price += variant.unit_price * quantity;
+    }
+
     // Insert into orders table
     const orderResult = await new Promise((resolve, reject) => {
       db.run(
-        "INSERT INTO orders (customer_id, date, total_price, payments, balance) VALUES (?, ?, ?, ?, ?)",
-        [customer_id, date, total_price, payments, balance],
+        "INSERT INTO orders (customer_id, date, total_price, payments, balance, order_status) VALUES (?, ?, ?, ?, ?, 'open')",
+        [
+          customer_id,
+          date,
+          total_price,
+          payment_amount,
+          total_price - payment_amount,
+        ],
         function (err) {
           if (err) return reject(err);
           resolve(this);
@@ -234,22 +270,11 @@ app.post("/orders", async (req, res) => {
 
     const orderId = orderResult.lastID;
 
-    // Prepare statement
-    const stmt = await new Promise((resolve, reject) => {
-      const statement = db.prepare(
-        "INSERT INTO order_items (order_id, product_id, variant_id, quantity, subtotal) VALUES (?, ?, ?, ?, ?)",
-        (err) => {
-          if (err) return reject(err);
-          resolve(statement);
-        }
-      );
-    });
-
-    // Insert items
+    // Insert items and update inventory
     for (const item of items) {
       const { variant_id, quantity } = item;
 
-      // Fetch product_id AND unit_price
+      // Get product information
       const product = await new Promise((resolve, reject) => {
         db.get(
           "SELECT product_id, unit_price FROM product_variants WHERE variant_id = ?",
@@ -265,48 +290,55 @@ app.post("/orders", async (req, res) => {
         );
       });
 
-      const product_id = product.product_id;
       const subtotal = product.unit_price * quantity;
-      console.log(
-        `Inserted item: product_id ${product_id}, quantity ${quantity}, subtotal ${subtotal}`
-      );
 
-      // Insert into order_items
-      await new Promise((resolve, reject) => {
-        stmt.run(orderId, product_id, variant_id, quantity, subtotal, (err) => {
-          if (err) return reject(err);
-          resolve();
-        });
-      });
-
-      // Update stock and sold units
+      // Insert order item
       await new Promise((resolve, reject) => {
         db.run(
-          `UPDATE product_variants 
-           SET units_in_stock = units_in_stock - ?, 
-               units_sold = units_sold + ? 
-           WHERE variant_id = ?`,
-          [quantity, quantity, variant_id],
-          (err) => {
+          "INSERT INTO order_items (order_id, product_id, variant_id, quantity, unit_price, subtotal) VALUES (?, ?, ?, ?, ?, ?)",
+          [
+            orderId,
+            product.product_id,
+            variant_id,
+            quantity,
+            product.unit_price,
+            subtotal,
+          ],
+          function (err) {
             if (err) return reject(err);
             resolve();
           }
         );
       });
+
+      // Update inventory
+      const result = await new Promise((resolve, reject) => {
+        db.run(
+          `UPDATE product_variants 
+           SET units_in_stock = units_in_stock - ?, 
+               units_sold = COALESCE(units_sold, 0) + ?
+           WHERE variant_id = ? AND units_in_stock >= ?`,
+          [quantity, quantity, variant_id, quantity],
+          function (err) {
+            if (err) return reject(err);
+            resolve(this);
+          }
+        );
+      });
+
+      if (result.changes === 0) {
+        throw new Error(
+          `Failed to update inventory for variant_id ${variant_id}`
+        );
+      }
     }
 
-    // Finalize & commit
-    await new Promise((resolve, reject) => {
-      stmt.finalize((err) => {
-        if (err) return reject(err);
-        resolve();
-      });
-    });
-
     await db.run("COMMIT");
-    res
-      .status(201)
-      .json({ message: "Order created successfully!", order_id: orderId });
+    res.status(201).json({
+      message: "Order created successfully!",
+      order_id: orderId,
+      total_price: total_price.toFixed(2),
+    });
   } catch (err) {
     await db.run("ROLLBACK");
     console.error("Error processing order:", err);
@@ -317,21 +349,25 @@ app.post("/orders", async (req, res) => {
 // Get all orders (basic view)
 app.get("/orders", (req, res) => {
   const query = `
-SELECT 
-  o.order_id,
-  o.date,
-  c.name AS customer_name,
-  p.name AS product_name,
-  v.size AS variant_size,
-  oi.quantity,
-  oi.subtotal
-FROM orders o
-JOIN customers c ON o.customer_id = c.customer_id
-JOIN order_items oi ON o.order_id = oi.order_id
-JOIN product_variants v ON oi.variant_id = v.variant_id
-JOIN products p ON v.product_id = p.product_id
-
-ORDER BY o.order_id DESC;
+    SELECT 
+      o.order_id,
+      o.date,
+      c.name AS customer_name,
+      p.name AS product_name,
+      v.size AS variant_size,
+      oi.quantity,
+      oi.unit_price,
+      oi.subtotal,
+      o.total_price,
+      o.payments,
+      o.balance,
+      o.order_status
+    FROM orders o
+    JOIN customers c ON o.customer_id = c.customer_id
+    JOIN order_items oi ON o.order_id = oi.order_id
+    JOIN product_variants v ON oi.variant_id = v.variant_id
+    JOIN products p ON v.product_id = p.product_id
+    ORDER BY o.order_id DESC
   `;
 
   db.all(query, [], (err, rows) => {
@@ -339,7 +375,43 @@ ORDER BY o.order_id DESC;
       console.error("Error fetching orders:", err);
       return res.status(500).json({ error: err.message });
     }
-    res.json(rows);
+
+    // Calculate totals
+    const totals = rows.reduce(
+      (acc, row) => {
+        acc.totalOrders = new Set([...acc.totalOrders, row.order_id]).size;
+        acc.totalQuantity += row.quantity;
+        acc.totalSales += parseFloat(row.subtotal);
+        acc.totalPayments += parseFloat(row.payments || 0);
+        acc.totalBalance += parseFloat(row.balance || 0);
+        return acc;
+      },
+      {
+        totalOrders: new Set(),
+        totalQuantity: 0,
+        totalSales: 0,
+        totalPayments: 0,
+        totalBalance: 0,
+      }
+    );
+
+    // Format numbers
+    rows.forEach((row) => {
+      row.unit_price = Number(row.unit_price).toFixed(2);
+      row.subtotal = Number(row.subtotal).toFixed(2);
+      row.total_price = Number(row.total_price).toFixed(2);
+      row.payments = row.payments ? Number(row.payments).toFixed(2) : "0.00";
+      row.balance = row.balance ? Number(row.balance).toFixed(2) : "0.00";
+    });
+
+    totals.totalSales = Number(totals.totalSales).toFixed(2);
+    totals.totalPayments = Number(totals.totalPayments).toFixed(2);
+    totals.totalBalance = Number(totals.totalBalance).toFixed(2);
+
+    res.json({
+      orders: rows,
+      totals,
+    });
   });
 });
 
