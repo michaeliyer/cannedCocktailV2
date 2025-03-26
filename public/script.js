@@ -42,29 +42,34 @@ function importData(file) {
   reader.readAsText(file);
 }
 
-// Add import/export buttons to the UI
+// Initialize import/export functionality
 document.addEventListener("DOMContentLoaded", () => {
-  const importExportSection = document.createElement("div");
-  importExportSection.innerHTML = `
-    <h2 class="subHeads">Import/Export Data</h2>
-    <button id="exportBtn">Export Data</button>
-    <input type="file" id="importFile" accept=".json" style="display: none;">
-    <button id="importBtn">Import Data</button>
-  `;
-  document.body.insertBefore(
-    importExportSection,
-    document.querySelector("script")
-  );
+  const exportBtn = document.getElementById("exportBtn");
+  const importBtn = document.getElementById("importBtn");
+  const importFile = document.getElementById("importFile");
 
-  document.getElementById("exportBtn").addEventListener("click", exportData);
-  document.getElementById("importBtn").addEventListener("click", () => {
-    document.getElementById("importFile").click();
-  });
-  document.getElementById("importFile").addEventListener("change", (e) => {
-    if (e.target.files.length > 0) {
-      importData(e.target.files[0]);
-    }
-  });
+  if (exportBtn) {
+    exportBtn.addEventListener("click", exportData);
+  }
+  if (importBtn) {
+    importBtn.addEventListener("click", () => {
+      importFile.click();
+    });
+  }
+  if (importFile) {
+    importFile.addEventListener("change", (e) => {
+      if (e.target.files.length > 0) {
+        importData(e.target.files[0]);
+      }
+    });
+  }
+
+  // Initialize all data
+  loadProducts();
+  loadCustomers();
+  loadOrders();
+  loadOrderFormDropdowns();
+  loadInventory();
 });
 
 console.log("Script loaded!");
@@ -75,14 +80,11 @@ function loadProducts() {
     .then((products) => {
       const container = document.getElementById("products");
       const variantSelect = document.getElementById("variantProductSelect");
-      const salesSelect = document.getElementById("salesProductSelect");
 
       // Clear existing content
       container.innerHTML = "";
       if (variantSelect)
         variantSelect.innerHTML = '<option value="">Select Product</option>';
-      if (salesSelect)
-        salesSelect.innerHTML = '<option value="">All Products</option>';
 
       if (products.length === 0) {
         container.innerHTML = "<p>No products yet.</p>";
@@ -97,17 +99,14 @@ function loadProducts() {
           <h3>${product.name}</h3>
           <p>${product.description || ""}</p>
           <p>Category: ${product.category || "Uncategorized"}</p>
-          <button class="edit-btn" data-id="${product.product_id}" data-name="${
-          product.name
-        }" data-description="${product.description || ""}" data-category="${
-          product.category || ""
-        }">Edit</button>
-          <button class="delete-btn" data-id="${
-            product.product_id
-          }">Delete</button>
-          <button class="view-variants-btn" data-id="${
-            product.product_id
-          }">View Variants</button>
+          <div class="product-actions">
+            <button class="delete-btn" data-id="${
+              product.product_id
+            }">Delete Product</button>
+            <button class="view-variants-btn" data-id="${
+              product.product_id
+            }">View Variants</button>
+          </div>
           <div id="variants-${product.product_id}" class="variants"></div>
           <hr>
         `;
@@ -120,188 +119,10 @@ function loadProducts() {
           variantOption.textContent = product.name;
           variantSelect.appendChild(variantOption);
         }
-
-        // Populate sales report dropdown
-        if (salesSelect) {
-          const salesOption = document.createElement("option");
-          salesOption.value = product.product_id;
-          salesOption.textContent = product.name;
-          salesSelect.appendChild(salesOption);
-        }
       });
 
-      // Attach Delete Product Listener
-      document.querySelectorAll(".delete-btn").forEach((button) => {
-        button.addEventListener("click", (e) => {
-          const productId = e.target.getAttribute("data-id");
-          if (confirm("Are you sure you want to delete this product?")) {
-            if (confirm("This will permanently delete the product.")) {
-              if (confirm("Final chance! Proceed?")) {
-                deleteProduct(productId);
-              }
-            }
-          }
-        });
-      });
-
-      // Attach Edit Product Listener
-      document.querySelectorAll(".edit-btn").forEach((button) => {
-        button.addEventListener("click", (e) => {
-          const productId = e.target.getAttribute("data-id");
-          const name = e.target.getAttribute("data-name");
-          const description = e.target.getAttribute("data-description");
-          const category = e.target.getAttribute("data-category");
-
-          // Prefill form
-          document.getElementById("name").value = name;
-          document.getElementById("description").value = description;
-          document.getElementById("category").value = category;
-
-          const form = document.getElementById("productForm");
-          form.setAttribute("data-edit-id", productId);
-          form.querySelector("button").textContent = "Update Product";
-        });
-      });
-
-      // Attach View Variants Listener
-      document.querySelectorAll(".view-variants-btn").forEach((button) => {
-        button.addEventListener("click", (e) => {
-          const productId = e.target.getAttribute("data-id");
-          const variantsDiv = document.getElementById(`variants-${productId}`);
-
-          // Toggle view
-          if (variantsDiv.innerHTML !== "") {
-            variantsDiv.innerHTML = "";
-            return;
-          }
-
-          fetch(`/products/${productId}/variants`)
-            .then((res) => res.json())
-            .then((variants) => {
-              if (variants.length === 0) {
-                variantsDiv.innerHTML = "<p>No variants.</p>";
-                return;
-              }
-
-              // Show variants
-              variants.forEach((variant) => {
-                variantsDiv.innerHTML += `
-                  <p>
-                    Size: ${variant.size}, Price: $${variant.unit_price}, Stock: ${variant.units_in_stock}, SKU: ${variant.sku}
-                    <button class="edit-variant-btn" 
-                      data-vid="${variant.variant_id}" 
-                      data-pid="${productId}" 
-                      data-size="${variant.size}" 
-                      data-price="${variant.unit_price}" 
-                      data-stock="${variant.units_in_stock}" 
-                      data-sku="${variant.sku}">
-                      Edit
-                    </button>
-                    <button class="delete-variant-btn" data-id="${variant.variant_id}">Delete</button>
-                  </p>
-                `;
-              });
-
-              // Add dropdown + Add Stock inputs
-              variantsDiv.innerHTML += `
-                <div style="margin-top:1rem;">
-                  <select class="variant-select" id="variantSelect-${productId}">
-                    <option value="">Select Variant</option>
-                  </select>
-                  <input type="number" min="1" placeholder="Quantity" id="addStockQty-${productId}" style="width:80px;">
-                  <button class="add-stock-btn" data-id="${productId}">Add Stock</button>
-                </div>
-              `;
-
-              // Populate dropdown
-              const select = document.getElementById(
-                `variantSelect-${productId}`
-              );
-              variants.forEach((variant) => {
-                const option = document.createElement("option");
-                option.value = variant.variant_id;
-                option.textContent = `${variant.size} - ${variant.sku}`;
-                select.appendChild(option);
-              });
-
-              // Add Stock Button Listener
-              variantsDiv
-                .querySelector(`.add-stock-btn`)
-                .addEventListener("click", () => {
-                  const selectedVariant = select.value;
-                  const qtyInput = document.getElementById(
-                    `addStockQty-${productId}`
-                  );
-                  const qty = parseInt(qtyInput.value);
-
-                  if (!selectedVariant) {
-                    alert("Please select a variant.");
-                    return;
-                  }
-
-                  if (!qty || qty <= 0) {
-                    alert("Enter valid positive quantity!");
-                    return;
-                  }
-
-                  fetch(`/variants/${selectedVariant}/addstock`, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ quantity: qty }),
-                  })
-                    .then((res) => res.json())
-                    .then((data) => {
-                      alert(data.message);
-                      loadProducts();
-                    });
-                });
-
-              // Delete Variant Listener
-              variantsDiv
-                .querySelectorAll(".delete-variant-btn")
-                .forEach((vbtn) => {
-                  vbtn.addEventListener("click", (e) => {
-                    const variantId = e.target.getAttribute("data-id");
-                    if (
-                      confirm("Are you sure you want to delete this variant?")
-                    ) {
-                      if (
-                        confirm("This will permanently delete the variant.")
-                      ) {
-                        if (confirm("Final chance! Proceed?")) {
-                          deleteVariant(variantId, productId);
-                        }
-                      }
-                    }
-                  });
-                });
-
-              // Edit Variant Listener
-              variantsDiv
-                .querySelectorAll(".edit-variant-btn")
-                .forEach((ebtn) => {
-                  ebtn.addEventListener("click", (e) => {
-                    const variantId = e.target.getAttribute("data-vid");
-                    document.getElementById("variantProductSelect").value =
-                      e.target.getAttribute("data-pid");
-                    document.getElementById("size").value =
-                      e.target.getAttribute("data-size");
-                    document.getElementById("unit_price").value =
-                      e.target.getAttribute("data-price");
-                    document.getElementById("units_in_stock").value =
-                      e.target.getAttribute("data-stock");
-                    document.getElementById("sku").value =
-                      e.target.getAttribute("data-sku");
-
-                    const variantForm = document.getElementById("variantForm");
-                    variantForm.setAttribute("data-edit-id", variantId);
-                    variantForm.querySelector("button").textContent =
-                      "Update Variant";
-                  });
-                });
-            });
-        });
-      });
+      // Attach event listeners
+      attachProductEventListeners();
     })
     .catch((err) => console.error("Error loading products:", err));
 }
@@ -437,46 +258,23 @@ function loadCustomers() {
           <p>Email: ${cust.email || "-"}</p>
           <p>Phone: ${cust.phone || "-"}</p>
           <p>Notes: ${cust.notes || "-"}</p>
-          <button class="edit-cust-btn" data-id="${
-            cust.customer_id
-          }" data-name="${cust.name}" data-email="${cust.email}" data-phone="${
-          cust.phone
-        }" data-notes="${cust.notes}">Edit</button>
-          <button class="delete-cust-btn" data-id="${
-            cust.customer_id
-          }">Delete</button>
+          <div class="customer-actions">
+            <button class="edit-cust-btn" data-id="${
+              cust.customer_id
+            }" data-name="${cust.name}" data-email="${
+          cust.email
+        }" data-phone="${cust.phone}" data-notes="${cust.notes}">Edit</button>
+            <button class="delete-cust-btn" data-id="${
+              cust.customer_id
+            }">Delete</button>
+          </div>
           <hr>
         `;
         container.appendChild(custDiv);
       });
 
-      // === DELETE CUSTOMER LISTENER ===
-      document.querySelectorAll(".delete-cust-btn").forEach((button) => {
-        button.addEventListener("click", (e) => {
-          const id = e.target.getAttribute("data-id");
-          if (confirm("Delete this customer?")) {
-            deleteCustomer(id);
-          }
-        });
-      });
-
-      // === EDIT CUSTOMER LISTENER ===
-      document.querySelectorAll(".edit-cust-btn").forEach((button) => {
-        button.addEventListener("click", (e) => {
-          const id = e.target.getAttribute("data-id");
-          document.getElementById("cust_name").value =
-            e.target.getAttribute("data-name");
-          document.getElementById("cust_email").value =
-            e.target.getAttribute("data-email");
-          document.getElementById("cust_phone").value =
-            e.target.getAttribute("data-phone");
-          document.getElementById("cust_notes").value =
-            e.target.getAttribute("data-notes");
-
-          custForm.setAttribute("data-edit-id", id);
-          custForm.querySelector("button").textContent = "Update Customer";
-        });
-      });
+      // Attach event listeners
+      attachCustomerEventListeners();
     })
     .catch((err) => console.error("Error loading customers:", err));
 }
@@ -494,6 +292,7 @@ function deleteCustomer(id) {
 
 // === CUSTOMER FORM HANDLING ===
 const custForm = document.getElementById("customerForm");
+const submitButton = custForm.querySelector("button");
 
 custForm.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -520,13 +319,13 @@ custForm.addEventListener("submit", (e) => {
         alert(data.message);
         custForm.reset();
         custForm.removeAttribute("data-edit-id");
-        custForm.querySelector("button").textContent = "Add Customer";
+        submitButton.textContent = "Add Customer";
         loadCustomers();
       })
       .catch((err) => console.error("Error editing customer:", err));
   } else {
     // === ADD CUSTOMER ===
-    console.log("Sending to server:", custData); // Debug log
+    console.log("Sending to server:", custData);
     fetch("/customers", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -583,6 +382,7 @@ function loadOrderFormDropdowns() {
     .then((res) => res.json())
     .then((customers) => {
       const custSelect = document.getElementById("orderCustomerSelect");
+      custSelect.innerHTML = '<option value="">Select Customer</option>';
       customers.forEach((cust) => {
         const opt = document.createElement("option");
         opt.value = cust.customer_id;
@@ -591,11 +391,14 @@ function loadOrderFormDropdowns() {
       });
     });
 
-  // Load variants
+  // Load variants with availability
   fetch("/products")
     .then((res) => res.json())
     .then((products) => {
       const variantSelect = document.getElementById("orderVariantSelect");
+      variantSelect.innerHTML =
+        '<option value="">Select Product Variant</option>';
+
       products.forEach((prod) => {
         fetch(`/products/${prod.product_id}/variants`)
           .then((res) => res.json())
@@ -604,6 +407,7 @@ function loadOrderFormDropdowns() {
               const opt = document.createElement("option");
               opt.value = variant.variant_id;
               opt.textContent = `${prod.name} - ${variant.size} (${variant.units_in_stock} in stock)`;
+              opt.disabled = variant.units_in_stock <= 0;
               variantSelect.appendChild(opt);
             });
           });
@@ -905,3 +709,308 @@ document.addEventListener("DOMContentLoaded", () => {
   loadOrders();
   loadOrderFormDropdowns();
 });
+
+// Landing page interaction
+document.addEventListener("DOMContentLoaded", () => {
+  const landingTitle = document.querySelector(".landing-title");
+  const mainMenu = document.querySelector(".main-menu");
+  const landingPage = document.querySelector(".landing-page");
+
+  landingTitle.addEventListener("click", () => {
+    landingPage.style.opacity = "0";
+    setTimeout(() => {
+      landingPage.style.display = "none";
+      mainMenu.style.display = "block";
+      mainMenu.style.opacity = "1";
+    }, 500);
+  });
+
+  // Initialize all toggle buttons
+  const sectionToggles = document.querySelectorAll(".section-toggle");
+  const subsectionToggles = document.querySelectorAll(".subsection-toggle");
+
+  sectionToggles.forEach((toggle) => {
+    toggle.addEventListener("click", () => {
+      const content = toggle.nextElementSibling;
+      const isVisible = content.style.display === "block";
+
+      // Close all other section contents
+      document.querySelectorAll(".section-content").forEach((section) => {
+        if (section !== content) {
+          section.style.display = "none";
+          const otherToggle = section.previousElementSibling;
+          otherToggle.textContent = otherToggle.textContent.replace("Hide", "");
+        }
+      });
+
+      // Toggle current section
+      content.style.display = isVisible ? "none" : "block";
+      toggle.textContent = isVisible
+        ? toggle.textContent.replace("Hide", "")
+        : "Hide " + toggle.textContent;
+
+      // If closing the section, also close all subsections
+      if (isVisible) {
+        content
+          .querySelectorAll(".subsection-content")
+          .forEach((subsection) => {
+            subsection.style.display = "none";
+          });
+        content.querySelectorAll(".subsection-toggle").forEach((subToggle) => {
+          subToggle.textContent = subToggle.textContent.replace("Hide", "");
+        });
+      }
+    });
+  });
+
+  subsectionToggles.forEach((toggle) => {
+    toggle.addEventListener("click", () => {
+      const content = toggle.nextElementSibling;
+      const isVisible = content.style.display === "block";
+
+      content.style.display = isVisible ? "none" : "block";
+      toggle.textContent = isVisible
+        ? toggle.textContent.replace("Hide", "")
+        : "Hide " + toggle.textContent;
+    });
+  });
+
+  // Initialize all data
+  loadProducts();
+  loadCustomers();
+  loadOrders();
+  loadOrderFormDropdowns();
+});
+
+// Helper function to attach product event listeners
+function attachProductEventListeners() {
+  // Delete Product Listener
+  document.querySelectorAll(".delete-btn").forEach((button) => {
+    button.addEventListener("click", (e) => {
+      const productId = e.target.getAttribute("data-id");
+      if (confirm("Are you sure you want to delete this product?")) {
+        if (confirm("This will permanently delete the product.")) {
+          if (confirm("Final chance! Proceed?")) {
+            deleteProduct(productId);
+          }
+        }
+      }
+    });
+  });
+
+  // View Variants Listener
+  document.querySelectorAll(".view-variants-btn").forEach((button) => {
+    button.addEventListener("click", (e) => {
+      const productId = e.target.getAttribute("data-id");
+      const variantsDiv = document.getElementById(`variants-${productId}`);
+
+      // Toggle view
+      if (variantsDiv.innerHTML !== "") {
+        variantsDiv.innerHTML = "";
+        return;
+      }
+
+      fetch(`/products/${productId}/variants`)
+        .then((res) => res.json())
+        .then((variants) => {
+          if (variants.length === 0) {
+            variantsDiv.innerHTML = "<p>No variants.</p>";
+            return;
+          }
+
+          // Show variants
+          variants.forEach((variant) => {
+            variantsDiv.innerHTML += `
+              <div class="variant-item">
+                <p>Size: ${variant.size}, Price: $${variant.unit_price}, Stock: ${variant.units_in_stock}, SKU: ${variant.sku}</p>
+                <div class="variant-actions">
+                  <button class="delete-variant-btn" data-id="${variant.variant_id}">Delete Variant</button>
+                </div>
+              </div>
+            `;
+          });
+
+          // Add dropdown + Add Stock inputs
+          variantsDiv.innerHTML += `
+            <div class="add-stock-section">
+              <select class="variant-select" id="variantSelect-${productId}">
+                <option value="">Select Variant</option>
+              </select>
+              <input type="number" min="1" placeholder="Quantity" id="addStockQty-${productId}" style="width:80px;">
+              <button class="add-stock-btn" data-id="${productId}">Add Stock</button>
+            </div>
+          `;
+
+          // Populate dropdown
+          const select = document.getElementById(`variantSelect-${productId}`);
+          variants.forEach((variant) => {
+            const option = document.createElement("option");
+            option.value = variant.variant_id;
+            option.textContent = `${variant.size} - ${variant.sku}`;
+            select.appendChild(option);
+          });
+
+          // Attach variant event listeners
+          attachVariantEventListeners(productId, variants);
+        });
+    });
+  });
+}
+
+// Helper function to attach customer event listeners
+function attachCustomerEventListeners() {
+  // Delete Customer Listener
+  document.querySelectorAll(".delete-cust-btn").forEach((button) => {
+    button.addEventListener("click", (e) => {
+      const id = e.target.getAttribute("data-id");
+      if (confirm("Delete this customer?")) {
+        deleteCustomer(id);
+      }
+    });
+  });
+
+  // Edit Customer Listener
+  document.querySelectorAll(".edit-cust-btn").forEach((button) => {
+    button.addEventListener("click", (e) => {
+      const id = e.target.getAttribute("data-id");
+      document.getElementById("cust_name").value =
+        e.target.getAttribute("data-name");
+      document.getElementById("cust_email").value =
+        e.target.getAttribute("data-email");
+      document.getElementById("cust_phone").value =
+        e.target.getAttribute("data-phone");
+      document.getElementById("cust_notes").value =
+        e.target.getAttribute("data-notes");
+
+      const form = document.getElementById("customerForm");
+      form.setAttribute("data-edit-id", id);
+      submitButton.textContent = "Save Customer";
+
+      // Show the Add Customer form section
+      const addCustomerSection = document.querySelector(".subsection-content");
+      if (addCustomerSection) {
+        addCustomerSection.style.display = "block";
+        const toggle = addCustomerSection.previousElementSibling;
+        toggle.textContent = "Hide " + toggle.textContent;
+      }
+    });
+  });
+}
+
+// Helper function to attach variant event listeners
+function attachVariantEventListeners(productId, variants) {
+  // Delete Variant Listener
+  document.querySelectorAll(".delete-variant-btn").forEach((button) => {
+    button.addEventListener("click", (e) => {
+      const variantId = e.target.getAttribute("data-id");
+      if (confirm("Are you sure you want to delete this variant?")) {
+        if (confirm("This will permanently delete the variant.")) {
+          if (confirm("Final chance! Proceed?")) {
+            deleteVariant(variantId, productId);
+          }
+        }
+      }
+    });
+  });
+
+  // Add Stock Button Listener
+  const addStockBtn = document.querySelector(
+    `.add-stock-btn[data-id="${productId}"]`
+  );
+  if (addStockBtn) {
+    addStockBtn.addEventListener("click", () => {
+      const select = document.getElementById(`variantSelect-${productId}`);
+      const qtyInput = document.getElementById(`addStockQty-${productId}`);
+      const selectedVariant = select.value;
+      const qty = parseInt(qtyInput.value);
+
+      if (!selectedVariant) {
+        alert("Please select a variant.");
+        return;
+      }
+
+      if (!qty || qty <= 0) {
+        alert("Enter valid positive quantity!");
+        return;
+      }
+
+      fetch(`/variants/${selectedVariant}/addstock`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quantity: qty }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          alert(data.message);
+          loadProducts();
+        });
+    });
+  }
+}
+
+// Function to load and display inventory
+function loadInventory() {
+  fetch("/inventory")
+    .then((res) => res.json())
+    .then((inventory) => {
+      const container = document.getElementById("inventoryTable");
+
+      if (inventory.length === 0) {
+        container.innerHTML = "<p>No inventory items found.</p>";
+        return;
+      }
+
+      let html = `
+        <table class="inventory-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Size</th>
+              <th>SKU</th>
+              <th>Unit Price</th>
+              <th>In Stock</th>
+              <th>Units Sold</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      inventory.forEach((item) => {
+        // Determine stock status
+        let status = "In Stock";
+        let statusClass = "in-stock";
+        let rowClass = "";
+
+        if (item.units_in_stock === 0) {
+          status = "Out of Stock";
+          statusClass = "out-of-stock";
+          rowClass = "data-stock='out'";
+        } else if (item.units_in_stock < 10) {
+          status = "Low Stock";
+          statusClass = "low-stock";
+          rowClass = "data-stock='low'";
+        }
+
+        html += `
+          <tr ${rowClass}>
+            <td>${item.product_name}</td>
+            <td>${item.size}</td>
+            <td>${item.sku}</td>
+            <td>$${Number(item.unit_price).toFixed(2)}</td>
+            <td>${item.units_in_stock}</td>
+            <td>${item.units_sold || 0}</td>
+            <td><span class="status-badge ${statusClass}">${status}</span></td>
+          </tr>
+        `;
+      });
+
+      html += `
+          </tbody>
+        </table>
+      `;
+
+      container.innerHTML = html;
+    })
+    .catch((err) => console.error("Error loading inventory:", err));
+}
