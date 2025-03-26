@@ -79,8 +79,10 @@ function loadProducts() {
 
       // Clear existing content
       container.innerHTML = "";
-      variantSelect.innerHTML = '<option value="">Select Product</option>';
-      salesSelect.innerHTML = '<option value="">All Products</option>';
+      if (variantSelect)
+        variantSelect.innerHTML = '<option value="">Select Product</option>';
+      if (salesSelect)
+        salesSelect.innerHTML = '<option value="">All Products</option>';
 
       if (products.length === 0) {
         container.innerHTML = "<p>No products yet.</p>";
@@ -93,27 +95,39 @@ function loadProducts() {
         productDiv.classList.add("product");
         productDiv.innerHTML = `
           <h3>${product.name}</h3>
-          <p>${product.description}</p>
-          <p>Category: ${product.category}</p>
-          <button class="edit-btn" data-id="${product.product_id}" data-name="${product.name}" data-description="${product.description}" data-category="${product.category}">Edit</button>
-          <button class="delete-btn" data-id="${product.product_id}">Delete</button>
-          <button class="view-variants-btn" data-id="${product.product_id}">View Variants</button>
+          <p>${product.description || ""}</p>
+          <p>Category: ${product.category || "Uncategorized"}</p>
+          <button class="edit-btn" data-id="${product.product_id}" data-name="${
+          product.name
+        }" data-description="${product.description || ""}" data-category="${
+          product.category || ""
+        }">Edit</button>
+          <button class="delete-btn" data-id="${
+            product.product_id
+          }">Delete</button>
+          <button class="view-variants-btn" data-id="${
+            product.product_id
+          }">View Variants</button>
           <div id="variants-${product.product_id}" class="variants"></div>
           <hr>
         `;
         container.appendChild(productDiv);
 
         // Populate variant form dropdown
-        const variantOption = document.createElement("option");
-        variantOption.value = product.product_id;
-        variantOption.textContent = product.name;
-        variantSelect.appendChild(variantOption);
+        if (variantSelect) {
+          const variantOption = document.createElement("option");
+          variantOption.value = product.product_id;
+          variantOption.textContent = product.name;
+          variantSelect.appendChild(variantOption);
+        }
 
         // Populate sales report dropdown
-        const salesOption = document.createElement("option");
-        salesOption.value = product.product_id;
-        salesOption.textContent = product.name;
-        salesSelect.appendChild(salesOption);
+        if (salesSelect) {
+          const salesOption = document.createElement("option");
+          salesOption.value = product.product_id;
+          salesOption.textContent = product.name;
+          salesSelect.appendChild(salesOption);
+        }
       });
 
       // Attach Delete Product Listener
@@ -143,6 +157,7 @@ function loadProducts() {
           document.getElementById("description").value = description;
           document.getElementById("category").value = category;
 
+          const form = document.getElementById("productForm");
           form.setAttribute("data-edit-id", productId);
           form.querySelector("button").textContent = "Update Product";
         });
@@ -267,7 +282,7 @@ function loadProducts() {
                 .forEach((ebtn) => {
                   ebtn.addEventListener("click", (e) => {
                     const variantId = e.target.getAttribute("data-vid");
-                    document.getElementById("productSelect").value =
+                    document.getElementById("variantProductSelect").value =
                       e.target.getAttribute("data-pid");
                     document.getElementById("size").value =
                       e.target.getAttribute("data-size");
@@ -278,6 +293,7 @@ function loadProducts() {
                     document.getElementById("sku").value =
                       e.target.getAttribute("data-sku");
 
+                    const variantForm = document.getElementById("variantForm");
                     variantForm.setAttribute("data-edit-id", variantId);
                     variantForm.querySelector("button").textContent =
                       "Update Variant";
@@ -286,7 +302,8 @@ function loadProducts() {
             });
         });
       });
-    });
+    })
+    .catch((err) => console.error("Error loading products:", err));
 }
 
 // Delete Product Function
@@ -360,7 +377,7 @@ variantForm.addEventListener("submit", (e) => {
   e.preventDefault();
 
   const newVariant = {
-    product_id: parseInt(document.getElementById("productSelect").value),
+    product_id: parseInt(document.getElementById("variantProductSelect").value),
     size: document.getElementById("size").value,
     unit_price: parseFloat(document.getElementById("unit_price").value),
     units_in_stock: parseInt(document.getElementById("units_in_stock").value),
@@ -397,59 +414,6 @@ variantForm.addEventListener("submit", (e) => {
       })
       .catch((err) => console.error(err));
   }
-});
-
-// Initial Load
-loadProducts();
-
-document.getElementById("viewInventory").addEventListener("click", () => {
-  fetch("/inventory")
-    .then((res) => res.json())
-    .then((data) => {
-      const tableDiv = document.getElementById("inventoryTable");
-      tableDiv.innerHTML = `
-          <table class="inventory-table">
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>Size</th>
-                <th>SKU</th>
-                <th>Unit Price ($)</th>
-                <th>Units In Stock</th>
-                <th>Units Sold</th>
-              </tr>
-            </thead>
-            <tbody>
-            </tbody>
-          </table>
-        `;
-
-      let totalStock = 0;
-      const tbody = tableDiv.querySelector("tbody");
-
-      data.forEach((row) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td>${row.product_name}</td>
-            <td>${row.size}</td>
-            <td>${row.sku}</td>
-            <td>${row.unit_price.toFixed(2)}</td>
-            <td>${row.units_in_stock}</td>
-            <td>${row.units_sold}</td>
-
-          `;
-        tbody.appendChild(tr);
-        totalStock += row.units_in_stock;
-      });
-
-      // Add total row
-      const totalRow = document.createElement("tr");
-      totalRow.innerHTML = `
-          <td colspan="4" style="text-align: right;"><strong>Total Stock:</strong></td>
-          <td><strong>${totalStock}</strong></td>
-        `;
-      tbody.appendChild(totalRow);
-    });
 });
 
 // === LOAD CUSTOMERS ===
@@ -753,7 +717,10 @@ function displayReportData(data, targetDiv) {
 
 // Initialize report functionality
 document.addEventListener("DOMContentLoaded", () => {
-  // Get all report elements
+  // Get all select elements
+  const customerSelect = document.getElementById("orderCustomerSelect");
+  const variantSelect = document.getElementById("orderVariantSelect");
+  const variantProductSelect = document.getElementById("variantProductSelect");
   const customerReportSelect = document.getElementById("customerReportSelect");
   const productReportSelect = document.getElementById("productReportSelect");
   const variantReportSelect = document.getElementById("variantReportSelect");
@@ -800,28 +767,31 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  // Fetch customers
+  // Fetch and populate customers
   fetch("/api/customers")
     .then((res) => res.json())
-    .then((data) =>
-      populateSelect(customerReportSelect, data, "customer_id", "name")
-    )
+    .then((data) => {
+      populateSelect(customerSelect, data, "customer_id", "name");
+      populateSelect(customerReportSelect, data, "customer_id", "name");
+    })
     .catch((err) => console.error("Error loading customers:", err));
 
-  // Fetch products
+  // Fetch and populate products
   fetch("/api/products")
     .then((res) => res.json())
-    .then((data) =>
-      populateSelect(productReportSelect, data, "product_id", "name")
-    )
+    .then((data) => {
+      populateSelect(variantProductSelect, data, "product_id", "name");
+      populateSelect(productReportSelect, data, "product_id", "name");
+    })
     .catch((err) => console.error("Error loading products:", err));
 
-  // Fetch product variants
+  // Fetch and populate variants
   fetch("/api/product_variants")
     .then((res) => res.json())
-    .then((data) =>
-      populateSelect(variantReportSelect, data, "variant_id", "variant_name")
-    )
+    .then((data) => {
+      populateSelect(variantSelect, data, "variant_id", "variant_name");
+      populateSelect(variantReportSelect, data, "variant_id", "variant_name");
+    })
     .catch((err) => console.error("Error loading variants:", err));
 
   // Date Range Report
@@ -928,4 +898,10 @@ document.addEventListener("DOMContentLoaded", () => {
         dailyReport.innerHTML = "<p>Error loading daily report.</p>";
       });
   });
+
+  // Initial load of data
+  loadProducts();
+  loadCustomers();
+  loadOrders();
+  loadOrderFormDropdowns();
 });
