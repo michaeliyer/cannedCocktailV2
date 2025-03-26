@@ -1,69 +1,160 @@
 body {
-    font-family: "Signika", sans-serif;
-    font-weight: 500;
-    padding: 2rem;
-    color: #b2b2b2;
-    background: #000000;
-  }
-  
-  h1 {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-  }
-  
-  button {
-    margin: 0.5rem;
-    padding: 0.5rem 1rem;
-    cursor: pointer;
-  }
+  font-family: "Signika", sans-serif;
+  font-weight: 500;
+  padding: 2rem;
+  color: #b2b2b2;
+  background: #000000;
+}
 
-  .subHeads {
-    font-family: "Archivo Black", sans-serif;
-    font-size: 2.25rem;
-    font-style: oblique;
-    color: #b2b2b2;
-  }
+h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
 
-  form {
-    margin-top: 1rem;
-  }
-  
-  input,
-  select {
-    margin: 0.5rem;
-    padding: 0.5rem;
-  }
-  
-  .inventory-container {
-    margin-top: 1rem;
-    overflow-x: auto;
-  }
-  
-  .inventory-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
-  }
-  
-  .inventory-table th, .inventory-table td {
-    border: 1px solid #ccc;
-    padding: 8px 12px;
-    text-align: center;
-  }
-  
-  .inventory-table th {
-    background-color: #f8f8f8;
-  }
-  
-  .inventory-table tr:nth-child(even) {
-    background-color: #f9f9f9;
-  }
-  
-  .inventory-table tr:last-child td {
-    background-color: #e0ffe0;
-    font-weight: bold;
-  }
+button {
+  margin: 0.5rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
 
-  #orders {
-    font-style: italic;
-  }
+.subHeads {
+  font-family: "Archivo Black", sans-serif;
+  font-size: 2.25rem;
+  font-style: oblique;
+  color: #b2b2b2;
+}
+
+form {
+  margin-top: 1rem;
+}
+
+input,
+select {
+  margin: 0.5rem;
+  padding: 0.5rem;
+}
+
+.inventory-container {
+  margin-top: 1rem;
+  overflow-x: auto;
+}
+
+.inventory-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.inventory-table th,
+.inventory-table td {
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+  text-align: center;
+}
+
+.inventory-table th {
+  background-color: #f8f8f8;
+}
+
+.inventory-table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.inventory-table tr:last-child td {
+  background-color: #e0ffe0;
+  font-weight: bold;
+}
+
+#orders {
+  font-style: italic;
+}
+
+/* Sales Report Styles */
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  background-color: #2a2a2a;
+  color: #b2b2b2;
+}
+
+.report-table th,
+.report-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #333;
+}
+
+.report-table th {
+  background-color: #1a1a1a;
+  font-weight: bold;
+}
+
+.report-table tr:hover {
+  background-color: #333;
+}
+
+.report-table tr:nth-child(even) {
+  background-color: #252525;
+}
+
+.report-totals {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #1a1a1a;
+  border-radius: 5px;
+}
+
+.report-totals h3 {
+  margin-top: 0;
+  color: #b2b2b2;
+}
+
+.report-totals p {
+  margin: 5px 0;
+  font-size: 1.1em;
+  color: #b2b2b2;
+}
+
+/* Report Sections */
+.report-section {
+  margin: 2rem 0;
+  padding: 1rem;
+  background-color: #1a1a1a;
+  border-radius: 8px;
+}
+
+.report-section h3 {
+  color: #b2b2b2;
+  margin-bottom: 1rem;
+}
+
+.report-filters {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.report-filters input,
+.report-filters select {
+  padding: 0.5rem;
+  border: 1px solid #333;
+  border-radius: 4px;
+  background-color: #2a2a2a;
+  color: #b2b2b2;
+}
+
+.report-filters button {
+  padding: 0.5rem 1rem;
+  background-color: #4a4a4a;
+  color: #b2b2b2;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.report-filters button:hover {
+  background-color: #5a5a5a;
+}

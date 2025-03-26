@@ -19,8 +19,9 @@
   <h2 class="subHeads">Add New Customer</h2>
   <form id="customerForm">
     <input type="text" id="cust_name" placeholder="Customer Name" required>
-    <input type="email" id="cust_email" placeholder="Email">
     <input type="text" id="cust_phone" placeholder="Phone">
+    <input type="email" id="cust_email" placeholder="Email">
+    <input type="address" id="cust_address" placeholder="Address">
     <input type="text" id="cust_notes" placeholder="Notes">
     <button type="submit">Add Customer</button>
   </form>
@@ -60,7 +61,7 @@
 
 <h2 class="subHeads">Add Variant</h2>
 <form id="variantForm">
-  <select id="productSelect" required>
+  <select id="variantProductSelect" required>
     <option value="">Select Product</option>
   </select><br>
   <input type="text" id="size" placeholder="Size (e.g., 330ml)" required>
@@ -75,22 +76,7 @@
 <hr></hr>
 <hr></hr>
 
-<!-- <h2 class="subHeads">Add New Customer</h2>
-<form id="customerForm">
-  <input type="text" id="cust_name" placeholder="Customer Name" required>
-  <input type="email" id="cust_email" placeholder="Email">
-  <input type="text" id="cust_phone" placeholder="Phone">
-  <input type="text" id="cust_notes" placeholder="Notes">
-  <button type="submit">Add Customer</button>
-</form>
-<hr></hr>
-<hr></hr>
 
-<h2 class="subHeads">Customers</h2>
-<div id="customers"></div>
-
-<hr></hr>
-<hr></hr> -->
 
 <h2 class="subHeads">Place New Order</h2>
 <form id="orderForm">
@@ -149,38 +135,79 @@
   <hr></hr>
   <hr></hr>
 
-<section id="sales-report-section">
-  <h2 class="subHeads">Sales Report</h2>
+<!-- Reports Section -->
+<section id="reports">
+  <h2 class="subHeads">Reports</h2>
 
-  <label for="startDate">Start Date:</label>
-  <input type="date" id="startDate">
+  <!-- Date Range Report -->
+  <div class="report-section">
+    <h3>Date Range Report</h3>
+    <div class="report-filters">
+      <input type="date" id="startDate" placeholder="Start Date">
+      <input type="date" id="endDate" placeholder="End Date">
+      <button id="fetchDateRangeBtn">Generate Date Range Report</button>
+    </div>
+    <div id="dateRangeReport"></div>
+  </div>
 
-  <label for="endDate">End Date:</label>
-  <input type="date" id="endDate">
+  <!-- Customer Reports -->
+  <div class="report-section">
+    <h3>Customer Reports</h3>
+    <div class="report-filters">
+      <select id="customerReportSelect">
+        <option value="">Select Customer</option>
+      </select>
+      <div class="date-range-inputs">
+        <input type="date" id="customerStartDate" placeholder="Start Date">
+        <input type="date" id="customerEndDate" placeholder="End Date">
+      </div>
+      <button id="fetchCustomerReportBtn">Generate Customer Report</button>
+    </div>
+    <div id="customerReport"></div>
+  </div>
 
-  <label for="customerSelect">Customer:</label>
-  <select id="customerSelect">
-    <option value="">All Customers</option>
-  </select>
+  <!-- Product Reports -->
+  <div class="report-section">
+    <h3>Product Reports</h3>
+    <div class="report-filters">
+      <select id="productReportSelect">
+        <option value="">Select Product</option>
+      </select>
+      <div class="date-range-inputs">
+        <input type="date" id="productStartDate" placeholder="Start Date">
+        <input type="date" id="productEndDate" placeholder="End Date">
+      </div>
+      <button id="fetchProductReportBtn">Generate Product Report</button>
+    </div>
+    <div id="productReport"></div>
+  </div>
 
-  <label for="productSelect">Product:</label>
-  <select id="productSelect">
-    <option value="">All Products</option>
-  </select>
+  <!-- Variant Reports -->
+  <div class="report-section">
+    <h3>Variant Reports</h3>
+    <div class="report-filters">
+      <select id="variantReportSelect">
+        <option value="">Select Variant</option>
+      </select>
+      <div class="date-range-inputs">
+        <input type="date" id="variantStartDate" placeholder="Start Date">
+        <input type="date" id="variantEndDate" placeholder="End Date">
+      </div>
+      <button id="fetchVariantReportBtn">Generate Variant Report</button>
+    </div>
+    <div id="variantReport"></div>
+  </div>
 
-  <label for="variantSelect">Variant:</label>
-  <select id="variantSelect">
-    <option value="">All Variants</option>
-  </select>
-
-  <button id="fetchReportBtn">Fetch Report</button>
-  <div id="dailyReport"></div>
+  <!-- Daily Report -->
+  <div class="report-section">
+    <h3>Daily Report</h3>
+    <div class="report-filters">
+      <input type="date" id="reportDate">
+      <button id="fetchDailyBtn">Generate Daily Report</button>
+    </div>
+    <div id="dailyReport"></div>
+  </div>
 </section>
-
-<hr></hr>
-<hr></hr>
-<hr></hr>
-<hr></hr>
 
   <script src="script.js"></script>
 </body>
