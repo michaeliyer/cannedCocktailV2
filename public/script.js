@@ -42,35 +42,29 @@ function importData(file) {
   reader.readAsText(file);
 }
 
-// Initialize import/export functionality
+// Add import/export buttons to the UI
 document.addEventListener("DOMContentLoaded", () => {
-  const exportBtn = document.getElementById("exportBtn");
-  const importBtn = document.getElementById("importBtn");
-  const importFile = document.getElementById("importFile");
+  const importExportSection = document.createElement("div");
+  importExportSection.innerHTML = `
+    <h2 class="subHeads">Import/Export Data</h2>
+    <button id="exportBtn">Export Data</button>
+    <input type="file" id="importFile" accept=".json" style="display: none;">
+    <button id="importBtn">Import Data</button>
+  `;
+  document.body.insertBefore(
+    importExportSection,
+    document.querySelector("script")
+  );
 
-  if (exportBtn) {
-    exportBtn.addEventListener("click", exportData);
-  }
-  if (importBtn) {
-    importBtn.addEventListener("click", () => {
-      importFile.click();
-    });
-  }
-  if (importFile) {
-    importFile.addEventListener("change", (e) => {
-      if (e.target.files.length > 0) {
-        importData(e.target.files[0]);
-      }
-    });
-  }
-
-  // Initialize all data
-  loadProducts();
-  loadCustomers();
-  loadOrders();
-  loadOrderFormDropdowns();
-  loadProductVariants();
-  loadInventory();
+  document.getElementById("exportBtn").addEventListener("click", exportData);
+  document.getElementById("importBtn").addEventListener("click", () => {
+    document.getElementById("importFile").click();
+  });
+  document.getElementById("importFile").addEventListener("change", (e) => {
+    if (e.target.files.length > 0) {
+      importData(e.target.files[0]);
+    }
+  });
 });
 
 console.log("Script loaded!");
@@ -81,11 +75,14 @@ function loadProducts() {
     .then((products) => {
       const container = document.getElementById("products");
       const variantSelect = document.getElementById("variantProductSelect");
+      const salesSelect = document.getElementById("salesProductSelect");
 
       // Clear existing content
       container.innerHTML = "";
       if (variantSelect)
         variantSelect.innerHTML = '<option value="">Select Product</option>';
+      if (salesSelect)
+        salesSelect.innerHTML = '<option value="">All Products</option>';
 
       if (products.length === 0) {
         container.innerHTML = "<p>No products yet.</p>";
@@ -100,14 +97,17 @@ function loadProducts() {
           <h3>${product.name}</h3>
           <p>${product.description || ""}</p>
           <p>Category: ${product.category || "Uncategorized"}</p>
-          <div class="product-actions">
-            <button class="delete-btn" data-id="${
-              product.product_id
-            }">Delete Product</button>
-            <button class="view-variants-btn" data-id="${
-              product.product_id
-            }">View Variants</button>
-          </div>
+          <button class="edit-btn" data-id="${product.product_id}" data-name="${
+          product.name
+        }" data-description="${product.description || ""}" data-category="${
+          product.category || ""
+        }">Edit</button>
+          <button class="delete-btn" data-id="${
+            product.product_id
+          }">Delete</button>
+          <button class="view-variants-btn" data-id="${
+            product.product_id
+          }">View Variants</button>
           <div id="variants-${product.product_id}" class="variants"></div>
           <hr>
         `;
@@ -120,10 +120,188 @@ function loadProducts() {
           variantOption.textContent = product.name;
           variantSelect.appendChild(variantOption);
         }
+
+        // Populate sales report dropdown
+        if (salesSelect) {
+          const salesOption = document.createElement("option");
+          salesOption.value = product.product_id;
+          salesOption.textContent = product.name;
+          salesSelect.appendChild(salesOption);
+        }
       });
 
-      // Attach event listeners
-      attachProductEventListeners();
+      // Attach Delete Product Listener
+      document.querySelectorAll(".delete-btn").forEach((button) => {
+        button.addEventListener("click", (e) => {
+          const productId = e.target.getAttribute("data-id");
+          if (confirm("Are you sure you want to delete this product?")) {
+            if (confirm("This will permanently delete the product.")) {
+              if (confirm("Final chance! Proceed?")) {
+                deleteProduct(productId);
+              }
+            }
+          }
+        });
+      });
+
+      // Attach Edit Product Listener
+      document.querySelectorAll(".edit-btn").forEach((button) => {
+        button.addEventListener("click", (e) => {
+          const productId = e.target.getAttribute("data-id");
+          const name = e.target.getAttribute("data-name");
+          const description = e.target.getAttribute("data-description");
+          const category = e.target.getAttribute("data-category");
+
+          // Prefill form
+          document.getElementById("name").value = name;
+          document.getElementById("description").value = description;
+          document.getElementById("category").value = category;
+
+          const form = document.getElementById("productForm");
+          form.setAttribute("data-edit-id", productId);
+          form.querySelector("button").textContent = "Update Product";
+        });
+      });
+
+      // Attach View Variants Listener
+      document.querySelectorAll(".view-variants-btn").forEach((button) => {
+        button.addEventListener("click", (e) => {
+          const productId = e.target.getAttribute("data-id");
+          const variantsDiv = document.getElementById(`variants-${productId}`);
+
+          // Toggle view
+          if (variantsDiv.innerHTML !== "") {
+            variantsDiv.innerHTML = "";
+            return;
+          }
+
+          fetch(`/products/${productId}/variants`)
+            .then((res) => res.json())
+            .then((variants) => {
+              if (variants.length === 0) {
+                variantsDiv.innerHTML = "<p>No variants.</p>";
+                return;
+              }
+
+              // Show variants
+              variants.forEach((variant) => {
+                variantsDiv.innerHTML += `
+                  <p>
+                    Size: ${variant.size}, Price: $${variant.unit_price}, Stock: ${variant.units_in_stock}, SKU: ${variant.sku}
+                    <button class="edit-variant-btn" 
+                      data-vid="${variant.variant_id}" 
+                      data-pid="${productId}" 
+                      data-size="${variant.size}" 
+                      data-price="${variant.unit_price}" 
+                      data-stock="${variant.units_in_stock}" 
+                      data-sku="${variant.sku}">
+                      Edit
+                    </button>
+                    <button class="delete-variant-btn" data-id="${variant.variant_id}">Delete</button>
+                  </p>
+                `;
+              });
+
+              // Add dropdown + Add Stock inputs
+              variantsDiv.innerHTML += `
+                <div style="margin-top:1rem;">
+                  <select class="variant-select" id="variantSelect-${productId}">
+                    <option value="">Select Variant</option>
+                  </select>
+                  <input type="number" min="1" placeholder="Quantity" id="addStockQty-${productId}" style="width:80px;">
+                  <button class="add-stock-btn" data-id="${productId}">Add Stock</button>
+                </div>
+              `;
+
+              // Populate dropdown
+              const select = document.getElementById(
+                `variantSelect-${productId}`
+              );
+              variants.forEach((variant) => {
+                const option = document.createElement("option");
+                option.value = variant.variant_id;
+                option.textContent = `${variant.size} - ${variant.sku}`;
+                select.appendChild(option);
+              });
+
+              // Add Stock Button Listener
+              variantsDiv
+                .querySelector(`.add-stock-btn`)
+                .addEventListener("click", () => {
+                  const selectedVariant = select.value;
+                  const qtyInput = document.getElementById(
+                    `addStockQty-${productId}`
+                  );
+                  const qty = parseInt(qtyInput.value);
+
+                  if (!selectedVariant) {
+                    alert("Please select a variant.");
+                    return;
+                  }
+
+                  if (!qty || qty <= 0) {
+                    alert("Enter valid positive quantity!");
+                    return;
+                  }
+
+                  fetch(`/variants/${selectedVariant}/addstock`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ quantity: qty }),
+                  })
+                    .then((res) => res.json())
+                    .then((data) => {
+                      alert(data.message);
+                      loadProducts();
+                    });
+                });
+
+              // Delete Variant Listener
+              variantsDiv
+                .querySelectorAll(".delete-variant-btn")
+                .forEach((vbtn) => {
+                  vbtn.addEventListener("click", (e) => {
+                    const variantId = e.target.getAttribute("data-id");
+                    if (
+                      confirm("Are you sure you want to delete this variant?")
+                    ) {
+                      if (
+                        confirm("This will permanently delete the variant.")
+                      ) {
+                        if (confirm("Final chance! Proceed?")) {
+                          deleteVariant(variantId, productId);
+                        }
+                      }
+                    }
+                  });
+                });
+
+              // Edit Variant Listener
+              variantsDiv
+                .querySelectorAll(".edit-variant-btn")
+                .forEach((ebtn) => {
+                  ebtn.addEventListener("click", (e) => {
+                    const variantId = e.target.getAttribute("data-vid");
+                    document.getElementById("variantProductSelect").value =
+                      e.target.getAttribute("data-pid");
+                    document.getElementById("size").value =
+                      e.target.getAttribute("data-size");
+                    document.getElementById("unit_price").value =
+                      e.target.getAttribute("data-price");
+                    document.getElementById("units_in_stock").value =
+                      e.target.getAttribute("data-stock");
+                    document.getElementById("sku").value =
+                      e.target.getAttribute("data-sku");
+
+                    const variantForm = document.getElementById("variantForm");
+                    variantForm.setAttribute("data-edit-id", variantId);
+                    variantForm.querySelector("button").textContent =
+                      "Update Variant";
+                  });
+                });
+            });
+        });
+      });
     })
     .catch((err) => console.error("Error loading products:", err));
 }
@@ -259,23 +437,46 @@ function loadCustomers() {
           <p>Email: ${cust.email || "-"}</p>
           <p>Phone: ${cust.phone || "-"}</p>
           <p>Notes: ${cust.notes || "-"}</p>
-          <div class="customer-actions">
-            <button class="edit-cust-btn" data-id="${
-              cust.customer_id
-            }" data-name="${cust.name}" data-email="${
-          cust.email
-        }" data-phone="${cust.phone}" data-notes="${cust.notes}">Edit</button>
-            <button class="delete-cust-btn" data-id="${
-              cust.customer_id
-            }">Delete</button>
-          </div>
+          <button class="edit-cust-btn" data-id="${
+            cust.customer_id
+          }" data-name="${cust.name}" data-email="${cust.email}" data-phone="${
+          cust.phone
+        }" data-notes="${cust.notes}">Edit</button>
+          <button class="delete-cust-btn" data-id="${
+            cust.customer_id
+          }">Delete</button>
           <hr>
         `;
         container.appendChild(custDiv);
       });
 
-      // Attach event listeners
-      attachCustomerEventListeners();
+      // === DELETE CUSTOMER LISTENER ===
+      document.querySelectorAll(".delete-cust-btn").forEach((button) => {
+        button.addEventListener("click", (e) => {
+          const id = e.target.getAttribute("data-id");
+          if (confirm("Delete this customer?")) {
+            deleteCustomer(id);
+          }
+        });
+      });
+
+      // === EDIT CUSTOMER LISTENER ===
+      document.querySelectorAll(".edit-cust-btn").forEach((button) => {
+        button.addEventListener("click", (e) => {
+          const id = e.target.getAttribute("data-id");
+          document.getElementById("cust_name").value =
+            e.target.getAttribute("data-name");
+          document.getElementById("cust_email").value =
+            e.target.getAttribute("data-email");
+          document.getElementById("cust_phone").value =
+            e.target.getAttribute("data-phone");
+          document.getElementById("cust_notes").value =
+            e.target.getAttribute("data-notes");
+
+          custForm.setAttribute("data-edit-id", id);
+          custForm.querySelector("button").textContent = "Update Customer";
+        });
+      });
     })
     .catch((err) => console.error("Error loading customers:", err));
 }
@@ -293,7 +494,6 @@ function deleteCustomer(id) {
 
 // === CUSTOMER FORM HANDLING ===
 const custForm = document.getElementById("customerForm");
-const submitButton = custForm.querySelector("button");
 
 custForm.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -320,13 +520,13 @@ custForm.addEventListener("submit", (e) => {
         alert(data.message);
         custForm.reset();
         custForm.removeAttribute("data-edit-id");
-        submitButton.textContent = "Add Customer";
+        custForm.querySelector("button").textContent = "Add Customer";
         loadCustomers();
       })
       .catch((err) => console.error("Error editing customer:", err));
   } else {
     // === ADD CUSTOMER ===
-    console.log("Sending to server:", custData);
+    console.log("Sending to server:", custData); // Debug log
     fetch("/customers", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -346,266 +546,124 @@ custForm.addEventListener("submit", (e) => {
 // === INITIAL LOAD ===
 loadCustomers();
 
-// Order form handler
-document.getElementById("orderForm").addEventListener("submit", async (e) => {
+function loadOrders() {
+  fetch("/orders")
+    .then((res) => res.json())
+    .then((orders) => {
+      const container = document.getElementById("orders");
+      container.innerHTML = "<h3>All Orders</h3>";
+
+      if (orders.length === 0) {
+        container.innerHTML += "<p>No orders yet.</p>";
+        return;
+      }
+
+      orders.forEach((order) => {
+        container.innerHTML += `
+          <p>Order #${order.order_id}: ${order.customer_name} ordered ${
+          order.quantity
+        } x ${order.product_name} (${
+          order.variant_size || "Unknown size"
+        }) totaling $${order.subtotal} on ${new Date(
+          order.date
+        ).toLocaleDateString()}</p>        `;
+      });
+    });
+}
+//       orders.forEach(order => {
+//         container.innerHTML += `
+//           <p>Order #${order.order_id}: ${order.customer_name} ordered ${order.quantity} x ${order.product_name} (${order.variant_size || 'Unknown size'}) totaling $${order.subtotal ? order.subtotal.toFixed(2) : '0.00'} on ${new Date(order.date).toLocaleDateString()}</p>        `;
+//       });
+//     });
+// }
+
+// function loadOrderFormDropdowns() {
+//   // Load customers
+//   fetch("/customers")
+//     .then((res) => res.json())
+//     .then((customers) => {
+//       const custSelect = document.getElementById("orderCustomerSelect");
+//       customers.forEach((cust) => {
+//         const opt = document.createElement("option");
+//         opt.value = cust.customer_id;
+//         opt.textContent = cust.name;
+//         custSelect.appendChild(opt);
+//       });
+//     });
+
+//   // Load variants
+//   fetch("/products")
+//     .then((res) => res.json())
+//     .then((products) => {
+//       const variantSelect = document.getElementById("orderVariantSelect");
+//       products.forEach((prod) => {
+//         fetch(`/products/${prod.product_id}/variants`)
+//           .then((res) => res.json())
+//           .then((variants) => {
+//             variants.forEach((variant) => {
+//               const opt = document.createElement("option");
+//               opt.value = variant.variant_id;
+//               opt.textContent = `${prod.name} - ${variant.size} (${variant.units_in_stock} in stock)`;
+//               variantSelect.appendChild(opt);
+//             });
+//           });
+//       });
+//     });
+// }
+
+const populateSelect = (selectElement, data, valueKey, textKey) => {
+  selectElement.innerHTML = '<option value="">Select</option>';
+  data.forEach((item) => {
+    const option = document.createElement("option");
+    option.value = item[valueKey];
+    option.textContent = item[textKey];
+    selectElement.appendChild(option);
+  });
+};
+
+// Handle Order Form Submit
+document.getElementById("orderForm").addEventListener("submit", (e) => {
   e.preventDefault();
 
-  const customerId = document.getElementById("orderCustomerSelect").value;
-  const paymentAmount =
-    parseFloat(document.getElementById("orderPayment").value) || 0;
+  const customerId = parseInt(
+    document.getElementById("orderCustomerSelect").value
+  );
+  const variantId = parseInt(
+    document.getElementById("orderVariantSelect").value
+  );
+  const quantity = parseInt(document.getElementById("orderQuantity").value);
 
-  if (!customerId) {
-    alert("Please select a customer");
-    return;
-  }
-
-  const items = [];
-  const itemRows = document.querySelectorAll(".order-item-row");
-
-  itemRows.forEach((row) => {
-    const variantId = row.querySelector(".variant-select").value;
-    const quantity = parseInt(row.querySelector(".quantity-input").value);
-    if (variantId && quantity > 0) {
-      items.push({ variant_id: variantId, quantity: quantity });
-    }
-  });
-
-  if (items.length === 0) {
-    alert("Please add at least one item to the order");
-    return;
-  }
-
-  try {
-    const response = await fetch("/orders", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+  // Simple version: One variant per order
+  const orderData = {
+    customer_id: customerId,
+    items: [
+      {
+        variant_id: variantId,
+        quantity: quantity,
       },
-      body: JSON.stringify({
-        customer_id: customerId,
-        items: items,
-        payment: paymentAmount,
-      }),
-    });
+    ],
+  };
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to create order");
-    }
+  console.log("Submitting order:", orderData);
 
-    const result = await response.json();
-    alert("Order created successfully!");
-    document.getElementById("orderForm").reset();
-    loadOrders();
-  } catch (error) {
-    console.error("Error creating order:", error);
-    alert(error.message);
-  }
-});
-
-// Load orders
-async function loadOrders() {
-  try {
-    const response = await fetch("/orders");
-    if (!response.ok) throw new Error("Failed to fetch orders");
-    const data = await response.json();
-
-    const ordersTable = document.getElementById("ordersTable");
-    if (!ordersTable) return;
-
-    if (data.orders.length === 0) {
-      ordersTable.innerHTML = "<p>No orders found</p>";
-      return;
-    }
-
-    const table = document.createElement("table");
-    table.innerHTML = `
-      <thead>
-        <tr>
-          <th>Order ID</th>
-          <th>Date</th>
-          <th>Customer</th>
-          <th>Product</th>
-          <th>Size</th>
-          <th>Quantity</th>
-          <th>Unit Price</th>
-          <th>Subtotal</th>
-          <th>Total</th>
-          <th>Payments</th>
-          <th>Balance</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${data.orders
-          .map(
-            (order) => `
-          <tr>
-            <td>${order.order_id}</td>
-            <td>${new Date(order.date).toLocaleString()}</td>
-            <td>${order.customer_name}</td>
-            <td>${order.product_name}</td>
-            <td>${order.variant_size}</td>
-            <td>${order.quantity}</td>
-            <td>$${order.unit_price}</td>
-            <td>$${order.subtotal}</td>
-            <td>$${order.total_price}</td>
-            <td>$${order.payments}</td>
-            <td>$${order.balance}</td>
-            <td><span class="status-badge ${order.order_status}">${
-              order.order_status
-            }</span></td>
-          </tr>
-        `
-          )
-          .join("")}
-      </tbody>
-      <tfoot>
-        <tr>
-          <td colspan="5"><strong>Totals:</strong></td>
-          <td>${data.totals.totalQuantity}</td>
-          <td></td>
-          <td></td>
-          <td>$${data.totals.totalSales}</td>
-          <td>$${data.totals.totalPayments}</td>
-          <td>$${data.totals.totalBalance}</td>
-          <td></td>
-        </tr>
-      </tfoot>
-    `;
-    ordersTable.innerHTML = "";
-    ordersTable.appendChild(table);
-  } catch (error) {
-    console.error("Error loading orders:", error);
-    const ordersTable = document.getElementById("ordersTable");
-    if (ordersTable) {
-      ordersTable.innerHTML = "<p>Error loading orders</p>";
-    }
-  }
-}
-
-// Load product variants for order form
-async function loadProductVariants() {
-  try {
-    const response = await fetch("/products");
-    const products = await response.json();
-
-    const orderItemsContainer = document.getElementById("orderItemsContainer");
-    if (!orderItemsContainer) {
-      console.error("Order items container not found");
-      return;
-    }
-
-    // Clear existing items
-    orderItemsContainer.innerHTML = "";
-
-    // Create initial row
-    const initialRow = createOrderItemRow();
-    orderItemsContainer.appendChild(initialRow);
-
-    // Get all variant dropdowns
-    const variantDropdowns = document.querySelectorAll(".variant-select");
-    if (variantDropdowns.length === 0) {
-      console.error("No variant dropdowns found");
-      return;
-    }
-
-    // Clear all dropdowns first
-    variantDropdowns.forEach((dropdown) => {
-      dropdown.innerHTML = '<option value="">Select a product variant</option>';
-    });
-
-    // Load variants for each product
-    for (const product of products) {
-      try {
-        const variantResponse = await fetch(
-          `/products/${product.product_id}/variants`
-        );
-        if (!variantResponse.ok) {
-          throw new Error(
-            `Failed to fetch variants for product ${product.product_id}`
-          );
-        }
-        const variants = await variantResponse.json();
-
-        // Add product header option
-        variantDropdowns.forEach((dropdown) => {
-          const productOption = document.createElement("option");
-          productOption.value = "";
-          productOption.textContent = `-- ${product.name} --`;
-          productOption.disabled = true;
-          dropdown.appendChild(productOption);
-
-          // Add variant options
-          variants.forEach((variant) => {
-            const option = document.createElement("option");
-            option.value = variant.variant_id;
-            option.textContent = `${product.name} - ${variant.size} (${variant.units_in_stock} in stock)`;
-            option.disabled = variant.units_in_stock <= 0;
-            dropdown.appendChild(option);
-          });
-        });
-      } catch (error) {
-        console.error(
-          `Error loading variants for product ${product.product_id}:`,
-          error
-        );
-      }
-    }
-  } catch (error) {
-    console.error("Error loading product variants:", error);
-    showNotification("Error loading product variants", "error");
-  }
-}
-
-function createOrderItemRow() {
-  const row = document.createElement("div");
-  row.className = "order-item-row";
-
-  row.innerHTML = `
-    <select class="form-control variant-select" required>
-      <option value="">Select a product variant</option>
-    </select>
-    <input type="number" class="form-control quantity-input" min="1" value="1" required>
-    <button type="button" class="remove-item" onclick="this.parentElement.remove()">Remove</button>
-  `;
-
-  return row;
-}
-
-// Add order item row
-function addOrderItemRow() {
-  const orderItemsContainer = document.getElementById("orderItemsContainer");
-  const newRow = createOrderItemRow();
-  orderItemsContainer.appendChild(newRow);
-  loadProductVariants(); // Reload variants for the new row
-}
-
-// Remove order item row
-document.addEventListener("click", (e) => {
-  if (e.target.classList.contains("remove-item")) {
-    e.target.parentElement.remove();
-  }
-});
-
-function loadOrderFormDropdowns() {
-  // Load customers
-  fetch("/customers")
+  fetch("/orders", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(orderData),
+  })
     .then((res) => res.json())
-    .then((customers) => {
-      const custSelect = document.getElementById("orderCustomerSelect");
-      if (custSelect) {
-        custSelect.innerHTML = '<option value="">Select Customer</option>';
-        customers.forEach((cust) => {
-          const opt = document.createElement("option");
-          opt.value = cust.customer_id;
-          opt.textContent = cust.name;
-          custSelect.appendChild(opt);
-        });
-      }
+    .then((data) => {
+      console.log("Server responded:", data);
+      alert(data.message);
+      document.getElementById("orderForm").reset();
+      loadOrders();
+      loadProducts();
     })
-    .catch((err) => console.error("Error loading customers:", err));
-}
+    .catch((err) => console.error("Error submitting order:", err));
+});
+// Initial load
+loadOrderFormDropdowns();
+loadOrders();
 
 // Function to display report data
 function displayReportData(data, targetDiv) {
@@ -838,7 +896,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Daily Report
   fetchDailyBtn.addEventListener("click", () => {
     if (!reportDate.value) {
-      alert("Please select a date!");
+      alert("Please select a date. Now!");
       return;
     }
 
@@ -857,308 +915,3 @@ document.addEventListener("DOMContentLoaded", () => {
   loadOrders();
   loadOrderFormDropdowns();
 });
-
-// Landing page interaction
-document.addEventListener("DOMContentLoaded", () => {
-  const landingTitle = document.querySelector(".landing-title");
-  const mainMenu = document.querySelector(".main-menu");
-  const landingPage = document.querySelector(".landing-page");
-
-  landingTitle.addEventListener("click", () => {
-    landingPage.style.opacity = "0";
-    setTimeout(() => {
-      landingPage.style.display = "none";
-      mainMenu.style.display = "block";
-      mainMenu.style.opacity = "1";
-    }, 500);
-  });
-
-  // Initialize all toggle buttons
-  const sectionToggles = document.querySelectorAll(".section-toggle");
-  const subsectionToggles = document.querySelectorAll(".subsection-toggle");
-
-  sectionToggles.forEach((toggle) => {
-    toggle.addEventListener("click", () => {
-      const content = toggle.nextElementSibling;
-      const isVisible = content.style.display === "block";
-
-      // Close all other section contents
-      document.querySelectorAll(".section-content").forEach((section) => {
-        if (section !== content) {
-          section.style.display = "none";
-          const otherToggle = section.previousElementSibling;
-          otherToggle.textContent = otherToggle.textContent.replace("Hide", "");
-        }
-      });
-
-      // Toggle current section
-      content.style.display = isVisible ? "none" : "block";
-      toggle.textContent = isVisible
-        ? toggle.textContent.replace("Hide", "")
-        : "Hide " + toggle.textContent;
-
-      // If closing the section, also close all subsections
-      if (isVisible) {
-        content
-          .querySelectorAll(".subsection-content")
-          .forEach((subsection) => {
-            subsection.style.display = "none";
-          });
-        content.querySelectorAll(".subsection-toggle").forEach((subToggle) => {
-          subToggle.textContent = subToggle.textContent.replace("Hide", "");
-        });
-      }
-    });
-  });
-
-  subsectionToggles.forEach((toggle) => {
-    toggle.addEventListener("click", () => {
-      const content = toggle.nextElementSibling;
-      const isVisible = content.style.display === "block";
-
-      content.style.display = isVisible ? "none" : "block";
-      toggle.textContent = isVisible
-        ? toggle.textContent.replace("Hide", "")
-        : "Hide " + toggle.textContent;
-    });
-  });
-
-  // Initialize all data
-  loadProducts();
-  loadCustomers();
-  loadOrders();
-  loadOrderFormDropdowns();
-});
-
-// Helper function to attach product event listeners
-function attachProductEventListeners() {
-  // Delete Product Listener
-  document.querySelectorAll(".delete-btn").forEach((button) => {
-    button.addEventListener("click", (e) => {
-      const productId = e.target.getAttribute("data-id");
-      if (confirm("Are you sure you want to delete this product?")) {
-        if (confirm("This will permanently delete the product.")) {
-          if (confirm("Final chance! Proceed?")) {
-            deleteProduct(productId);
-          }
-        }
-      }
-    });
-  });
-
-  // View Variants Listener
-  document.querySelectorAll(".view-variants-btn").forEach((button) => {
-    button.addEventListener("click", (e) => {
-      const productId = e.target.getAttribute("data-id");
-      const variantsDiv = document.getElementById(`variants-${productId}`);
-
-      // Toggle view
-      if (variantsDiv.innerHTML !== "") {
-        variantsDiv.innerHTML = "";
-        return;
-      }
-
-      fetch(`/products/${productId}/variants`)
-        .then((res) => res.json())
-        .then((variants) => {
-          if (variants.length === 0) {
-            variantsDiv.innerHTML = "<p>No variants.</p>";
-            return;
-          }
-
-          // Show variants
-          variants.forEach((variant) => {
-            variantsDiv.innerHTML += `
-              <div class="variant-item">
-                <p>Size: ${variant.size}, Price: $${variant.unit_price}, Stock: ${variant.units_in_stock}, SKU: ${variant.sku}</p>
-                <div class="variant-actions">
-                  <button class="delete-variant-btn" data-id="${variant.variant_id}">Delete Variant</button>
-                </div>
-              </div>
-            `;
-          });
-
-          // Add dropdown + Add Stock inputs
-          variantsDiv.innerHTML += `
-            <div class="add-stock-section">
-              <select class="variant-select" id="variantSelect-${productId}">
-                <option value="">Select Variant</option>
-              </select>
-              <input type="number" min="1" placeholder="Quantity" id="addStockQty-${productId}" style="width:80px;">
-              <button class="add-stock-btn" data-id="${productId}">Add Stock</button>
-            </div>
-          `;
-
-          // Populate dropdown
-          const select = document.getElementById(`variantSelect-${productId}`);
-          variants.forEach((variant) => {
-            const option = document.createElement("option");
-            option.value = variant.variant_id;
-            option.textContent = `${variant.size} - ${variant.sku}`;
-            select.appendChild(option);
-          });
-
-          // Attach variant event listeners
-          attachVariantEventListeners(productId, variants);
-        });
-    });
-  });
-}
-
-// Helper function to attach customer event listeners
-function attachCustomerEventListeners() {
-  // Delete Customer Listener
-  document.querySelectorAll(".delete-cust-btn").forEach((button) => {
-    button.addEventListener("click", (e) => {
-      const id = e.target.getAttribute("data-id");
-      if (confirm("Delete this customer?")) {
-        deleteCustomer(id);
-      }
-    });
-  });
-
-  // Edit Customer Listener
-  document.querySelectorAll(".edit-cust-btn").forEach((button) => {
-    button.addEventListener("click", (e) => {
-      const id = e.target.getAttribute("data-id");
-      document.getElementById("cust_name").value =
-        e.target.getAttribute("data-name");
-      document.getElementById("cust_email").value =
-        e.target.getAttribute("data-email");
-      document.getElementById("cust_phone").value =
-        e.target.getAttribute("data-phone");
-      document.getElementById("cust_notes").value =
-        e.target.getAttribute("data-notes");
-
-      const form = document.getElementById("customerForm");
-      form.setAttribute("data-edit-id", id);
-      submitButton.textContent = "Save Customer";
-
-      // Show the Add Customer form section
-      const addCustomerSection = document.querySelector(".subsection-content");
-      if (addCustomerSection) {
-        addCustomerSection.style.display = "block";
-        const toggle = addCustomerSection.previousElementSibling;
-        toggle.textContent = "Hide " + toggle.textContent;
-      }
-    });
-  });
-}
-
-// Helper function to attach variant event listeners
-function attachVariantEventListeners(productId, variants) {
-  // Delete Variant Listener
-  document.querySelectorAll(".delete-variant-btn").forEach((button) => {
-    button.addEventListener("click", (e) => {
-      const variantId = e.target.getAttribute("data-id");
-      if (confirm("Are you sure you want to delete this variant?")) {
-        if (confirm("This will permanently delete the variant.")) {
-          if (confirm("Final chance! Proceed?")) {
-            deleteVariant(variantId, productId);
-          }
-        }
-      }
-    });
-  });
-
-  // Add Stock Button Listener
-  const addStockBtn = document.querySelector(
-    `.add-stock-btn[data-id="${productId}"]`
-  );
-  if (addStockBtn) {
-    addStockBtn.addEventListener("click", () => {
-      const select = document.getElementById(`variantSelect-${productId}`);
-      const qtyInput = document.getElementById(`addStockQty-${productId}`);
-      const selectedVariant = select.value;
-      const qty = parseInt(qtyInput.value);
-
-      if (!selectedVariant) {
-        alert("Please select a variant.");
-        return;
-      }
-
-      if (!qty || qty <= 0) {
-        alert("Enter valid positive quantity!");
-        return;
-      }
-
-      fetch(`/variants/${selectedVariant}/addstock`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quantity: qty }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          alert(data.message);
-          loadProducts();
-        });
-    });
-  }
-}
-
-// Function to load and display inventory
-function loadInventory() {
-  fetch("/inventory")
-    .then((res) => res.json())
-    .then((inventory) => {
-      const container = document.getElementById("inventoryTable");
-
-      if (inventory.length === 0) {
-        container.innerHTML = "<p>No inventory items found.</p>";
-        return;
-      }
-
-      let html = `
-        <table class="inventory-table">
-          <thead>
-            <tr>
-              <th>Product</th>
-              <th>Size</th>
-              <th>SKU</th>
-              <th>Unit Price</th>
-              <th>In Stock</th>
-              <th>Units Sold</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-      `;
-
-      inventory.forEach((item) => {
-        // Determine stock status
-        let status = "In Stock";
-        let statusClass = "in-stock";
-        let rowClass = "";
-
-        if (item.units_in_stock === 0) {
-          status = "Out of Stock";
-          statusClass = "out-of-stock";
-          rowClass = "data-stock='out'";
-        } else if (item.units_in_stock < 10) {
-          status = "Low Stock";
-          statusClass = "low-stock";
-          rowClass = "data-stock='low'";
-        }
-
-        html += `
-          <tr ${rowClass}>
-            <td>${item.product_name}</td>
-            <td>${item.size}</td>
-            <td>${item.sku}</td>
-            <td>$${Number(item.unit_price).toFixed(2)}</td>
-            <td>${item.units_in_stock}</td>
-            <td>${item.units_sold || 0}</td>
-            <td><span class="status-badge ${statusClass}">${status}</span></td>
-          </tr>
-        `;
-      });
-
-      html += `
-          </tbody>
-        </table>
-      `;
-
-      container.innerHTML = html;
-    })
-    .catch((err) => console.error("Error loading inventory:", err));
-}

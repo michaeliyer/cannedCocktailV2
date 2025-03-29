@@ -1,353 +1,200 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Canned Cocktail Inventory</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div class="landing-page">
-      <h1 class="landing-title">Canned Cocktail Inventory</h1>
+<head>
+  <meta charset="UTF-8">
+  <title>Canned Cocktails V2</title>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Signika:wght@300..700&display=swap" rel="stylesheet">
+
+  <link href="style.css" rel="stylesheet" type="text/css" >
+</head>
+<body>
+
+  <h1>Canned Cocktail Inventory</h1>
+
+  <hr></hr>
+  <hr></hr>
+  <hr></hr>
+  <hr></hr>
+
+  <h2 class="subHeads">+ Add New Customer +</h2>
+  <form id="customerForm">
+    <input type="text" id="cust_name" placeholder="Customer Name" required>
+    <input type="text" id="cust_phone" placeholder="Phone">
+    <input type="email" id="cust_email" placeholder="Email">
+    <input type="address" id="cust_address" placeholder="Address">
+    <input type="text" id="cust_notes" placeholder="Notes">
+    <button type="submit">Add Customer</button>
+  </form>
+
+  <hr></hr>
+  <hr></hr>
+
+  <h2 class="subHeads">Customers</h2>
+  <div id="customers"></div>
+  
+  <hr></hr>
+  <hr></hr>
+  <hr></hr>
+
+
+
+  <h2 class="subHeads">Add New Product</h2>
+
+  <form id="productForm">
+
+    <input type="text" id="name" placeholder="Product Name" required>
+    <input type="text" id="description" placeholder="Description">
+    <input type="text" id="category" placeholder="Category">
+    <button type="submit">Add Product</button>
+  </form>
+  
+  <hr></hr>
+  <hr></hr>
+
+  <div id="product-section">
+    <h2 class="subHeads">Products</h2>
+    <div id="products"></div>
+
+<hr></hr>
+<hr></hr>
+<hr></hr>
+
+<h2 class="subHeads">Add Variant</h2>
+<form id="variantForm">
+  <select id="variantProductSelect" required>
+    <option value="">Select Product</option>
+  </select><br>
+  <input type="text" id="size" placeholder="Size (e.g., 330ml)" required>
+  <input type="number" id="unit_price" placeholder="Unit Price" step="0.01" required>
+  <input type="number" id="units_in_stock" placeholder="Units in Stock" required>
+  <input type="text" id="sku" placeholder="SKU" required>
+  <button type="submit">Add Variant</button>
+</form>
+
+<hr></hr>
+<hr></hr>
+<hr></hr>
+<hr></hr>
+
+
+
+<h2 class="subHeads">Place New Order</h2>
+<form id="orderForm">
+  <label for="orderCustomerSelect">Customer:</label>
+  <select id="orderCustomerSelect" required>
+    <option value="">Select Customer</option>
+  </select>
+
+  <label for="orderVariantSelect">Product Variant:</label>
+  <select id="orderVariantSelect" required>
+    <option value="">Select Product Variant</option>
+  </select><br>
+
+  <label for="orderQuantity">Quantity:</label>
+  <input type="number" id="orderQuantity" min="1" placeholder="Quantity" required><br>
+
+  <button type="submit">Place Order</button>
+</form>
+
+<hr></hr>
+<hr></hr>
+
+<div id="orders">
+  <h3>Orders:</h3>
+  <!-- Orders will load here -->
+</div>
+
+<hr></hr>
+<hr></hr>
+<hr></hr>
+<hr></hr>
+
+  </div>
+
+  
+  <h2 class="subHeads">Full Inventory Summary</h2>
+  <button id="viewInventory">View this Inventory</button>
+  <div id="inventoryTable" class="inventory-container"></div>
+
+  <hr></hr>
+  <hr></hr>
+  <hr></hr>
+  <hr></hr>
+
+  <!-- Reports Section -->
+  <section id="reports">
+    <h2 class="subHeads">Reports</h2>
+
+    <!-- Date Range Report -->
+    <div class="report-section">
+      <h3>Date Range Report</h3>
+      <div class="report-filters">
+        <input type="date" id="startDate" placeholder="Start Date">
+        <input type="date" id="endDate" placeholder="End Date">
+        <button id="fetchDateRangeBtn">Generate Date Range Report</button>
+      </div>
+      <div id="dateRangeReport"></div>
     </div>
 
-    <div class="main-menu" style="display: none">
-      <!-- Customers Section -->
-      <div class="section">
-        <button class="section-toggle" id="customers-section">Customers</button>
-        <div class="section-content" style="display: none">
-          <div class="subsection">
-            <button class="subsection-toggle">Add Customer</button>
-            <div class="subsection-content" style="display: none">
-              <form id="customerForm">
-                <input
-                  type="text"
-                  id="cust_name"
-                  placeholder="Customer Name"
-                  required
-                />
-                <input type="email" id="cust_email" placeholder="Email" />
-                <input type="tel" id="cust_phone" placeholder="Phone" />
-                <textarea id="cust_notes" placeholder="Notes"></textarea>
-                <button type="submit">Add Customer</button>
-              </form>
-            </div>
-          </div>
-          <div class="subsection">
-            <button class="subsection-toggle">View Customers</button>
-            <div class="subsection-content" style="display: none">
-              <div id="customers"></div>
-            </div>
-          </div>
+    <!-- Customer Reports -->
+    <div class="report-section">
+      <h3>Customer Reports</h3>
+      <div class="report-filters">
+        <select id="customerReportSelect">
+          <option value="">Select Customer</option>
+        </select>
+        <div class="date-range-inputs">
+          <input type="date" id="customerStartDate" placeholder="Start Date">
+          <input type="date" id="customerEndDate" placeholder="End Date">
         </div>
+        <button id="fetchCustomerReportBtn">Generate Customer Report</button>
       </div>
-
-      <!-- Products Section -->
-      <div class="section">
-        <button class="section-toggle" id="products-section">Products</button>
-        <div class="section-content" style="display: none">
-          <div class="subsection">
-            <button class="subsection-toggle">Add Product</button>
-            <div class="subsection-content" style="display: none">
-              <form id="productForm">
-                <input
-                  type="text"
-                  id="name"
-                  placeholder="Product Name"
-                  required
-                />
-                <textarea id="description" placeholder="Description"></textarea>
-                <input type="text" id="category" placeholder="Category" />
-                <button type="submit">Add Product</button>
-              </form>
-            </div>
-          </div>
-          <div class="subsection">
-            <button class="subsection-toggle">Add Variant</button>
-            <div class="subsection-content" style="display: none">
-              <form id="variantForm">
-                <select id="variantProductSelect" required>
-                  <option value="">Select Product</option>
-                </select>
-                <input type="text" id="size" placeholder="Size" required />
-                <input
-                  type="number"
-                  id="unit_price"
-                  placeholder="Unit Price"
-                  step="0.01"
-                  required
-                />
-                <input
-                  type="number"
-                  id="units_in_stock"
-                  placeholder="Units In Stock"
-                  required
-                />
-                <input type="text" id="sku" placeholder="SKU" required />
-                <button type="submit">Add Variant</button>
-              </form>
-            </div>
-          </div>
-          <div class="subsection">
-            <button class="subsection-toggle">View Products</button>
-            <div class="subsection-content" style="display: none">
-              <div id="products"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Orders Section -->
-      <div class="section">
-        <button class="section-toggle" id="orders-section">Orders</button>
-        <div id="orders" class="section-content" style="display: none">
-          <h2>Orders</h2>
-          <div class="form-container">
-            <form id="orderForm">
-              <div class="form-group">
-                <label for="orderCustomerSelect">Customer</label>
-                <select id="orderCustomerSelect" class="form-control" required>
-                  <option value="">Select a customer</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label>Order Items</label>
-                <div id="orderItemsContainer" class="order-items-container">
-                  <!-- Order items will be added here dynamically -->
-                </div>
-                <button
-                  type="button"
-                  class="btn-secondary"
-                  onclick="addOrderItemRow()"
-                >
-                  Add Item
-                </button>
-              </div>
-
-              <div class="form-group">
-                <label for="orderPayment">Payment Amount</label>
-                <input
-                  type="number"
-                  id="orderPayment"
-                  class="form-control"
-                  min="0"
-                  step="0.01"
-                  value="0"
-                />
-              </div>
-
-              <button type="submit" class="btn-primary">Create Order</button>
-            </form>
-          </div>
-
-          <div class="table-container">
-            <table id="ordersTable">
-              <thead>
-                <tr>
-                  <th>Order ID</th>
-                  <th>Customer</th>
-                  <th>Date</th>
-                  <th>Total</th>
-                  <th>Payment</th>
-                  <th>Balance</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- Inventory Section -->
-      <div class="section">
-        <button class="section-toggle" id="inventory-section">
-          Full Inventory
-        </button>
-        <div class="section-content" style="display: none">
-          <div id="inventoryTable"></div>
-        </div>
-      </div>
-
-      <!-- Reports Section -->
-      <div class="section">
-        <button class="section-toggle" id="reports-section">Reports</button>
-        <div class="section-content" style="display: none">
-          <div class="subsection">
-            <button class="subsection-toggle">Date Range Report</button>
-            <div class="subsection-content" style="display: none">
-              <div class="report-filters">
-                <input type="date" id="startDate" placeholder="Start Date" />
-                <input type="date" id="endDate" placeholder="End Date" />
-                <button id="fetchDateRangeBtn">Generate Report</button>
-              </div>
-              <div id="dateRangeReport"></div>
-            </div>
-          </div>
-
-          <div class="subsection">
-            <button class="subsection-toggle">Customer Report</button>
-            <div class="subsection-content" style="display: none">
-              <div class="report-filters">
-                <select id="customerReportSelect">
-                  <option value="">Select Customer</option>
-                </select>
-                <div class="date-range-inputs">
-                  <input
-                    type="date"
-                    id="customerStartDate"
-                    placeholder="Start Date"
-                  />
-                  <input
-                    type="date"
-                    id="customerEndDate"
-                    placeholder="End Date"
-                  />
-                </div>
-                <button id="fetchCustomerReportBtn">Generate Report</button>
-              </div>
-              <div id="customerReport"></div>
-            </div>
-          </div>
-
-          <div class="subsection">
-            <button class="subsection-toggle">Product Report</button>
-            <div class="subsection-content" style="display: none">
-              <div class="report-filters">
-                <select id="productReportSelect">
-                  <option value="">Select Product</option>
-                </select>
-                <div class="date-range-inputs">
-                  <input
-                    type="date"
-                    id="productStartDate"
-                    placeholder="Start Date"
-                  />
-                  <input
-                    type="date"
-                    id="productEndDate"
-                    placeholder="End Date"
-                  />
-                </div>
-                <button id="fetchProductReportBtn">Generate Report</button>
-              </div>
-              <div id="productReport"></div>
-            </div>
-          </div>
-
-          <div class="subsection">
-            <button class="subsection-toggle">Variant Report</button>
-            <div class="subsection-content" style="display: none">
-              <div class="report-filters">
-                <select id="variantReportSelect">
-                  <option value="">Select Variant</option>
-                </select>
-                <div class="date-range-inputs">
-                  <input
-                    type="date"
-                    id="variantStartDate"
-                    placeholder="Start Date"
-                  />
-                  <input
-                    type="date"
-                    id="variantEndDate"
-                    placeholder="End Date"
-                  />
-                </div>
-                <button id="fetchVariantReportBtn">Generate Report</button>
-              </div>
-              <div id="variantReport"></div>
-            </div>
-          </div>
-
-          <div class="subsection">
-            <button class="subsection-toggle">Daily Report</button>
-            <div class="subsection-content" style="display: none">
-              <div class="report-filters">
-                <input type="date" id="reportDate" />
-                <button id="fetchDailyBtn">Generate Report</button>
-              </div>
-              <div id="dailyReport"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Balances & Payments Section -->
-      <div class="section">
-        <button class="section-toggle" id="balances-section">
-          Balances & Payments
-        </button>
-        <div class="section-content" style="display: none">
-          <div class="subsection">
-            <button class="subsection-toggle">Customer Balance</button>
-            <div class="subsection-content" style="display: none">
-              <div class="balance-container">
-                <select id="balanceCustomerSelect" required>
-                  <option value="">Select Customer</option>
-                </select>
-                <div id="customerBalanceInfo" style="display: none">
-                  <div class="balance-info">
-                    <h3>Customer Details</h3>
-                    <p>Name: <span id="balanceCustomerName"></span></p>
-                    <p>
-                      Current Balance: $<span id="currentBalance">0.00</span>
-                    </p>
-                    <p>Total Orders: <span id="totalOrders">0</span></p>
-                    <p>
-                      Last Payment: $<span id="lastPayment">0.00</span> on
-                      <span id="lastPaymentDate">-</span>
-                    </p>
-                  </div>
-                  <div class="payment-form">
-                    <h3>Make Payment</h3>
-                    <form id="paymentForm">
-                      <input
-                        type="number"
-                        id="paymentAmount"
-                        placeholder="Payment Amount"
-                        step="0.01"
-                        required
-                      />
-                      <textarea
-                        id="paymentNotes"
-                        placeholder="Payment Notes (Optional)"
-                      ></textarea>
-                      <button type="submit" class="primary-button">
-                        Process Payment
-                      </button>
-                    </form>
-                  </div>
-                  <div class="payment-history">
-                    <h3>Payment History</h3>
-                    <div id="paymentHistory"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Import/Export Section -->
-      <div class="section">
-        <button class="section-toggle" id="import-export-section">
-          Import/Export
-        </button>
-        <div class="section-content" style="display: none">
-          <button id="exportBtn">Export Data</button>
-          <input
-            type="file"
-            id="importFile"
-            accept=".json"
-            style="display: none"
-          />
-          <button id="importBtn">Import Data</button>
-        </div>
-      </div>
+      <div id="customerReport"></div>
     </div>
 
-    <script src="script.js"></script>
-  </body>
+    <!-- Product Reports -->
+    <div class="report-section">
+      <h3>Product Reports</h3>
+      <div class="report-filters">
+        <select id="productReportSelect">
+          <option value="">Select Product</option>
+        </select>
+        <div class="date-range-inputs">
+          <input type="date" id="productStartDate" placeholder="Start Date">
+          <input type="date" id="productEndDate" placeholder="End Date">
+        </div>
+        <button id="fetchProductReportBtn">Generate Product Report</button>
+      </div>
+      <div id="productReport"></div>
+    </div>
+
+    <!-- Variant Reports -->
+    <div class="report-section">
+      <h3>Variant Reports</h3>
+      <div class="report-filters">
+        <select id="variantReportSelect">
+          <option value="">Select Variant</option>
+        </select>
+        <div class="date-range-inputs">
+          <input type="date" id="variantStartDate" placeholder="Start Date">
+          <input type="date" id="variantEndDate" placeholder="End Date">
+        </div>
+        <button id="fetchVariantReportBtn">Generate Variant Report</button>
+      </div>
+      <div id="variantReport"></div>
+    </div>
+
+    <!-- Daily Report -->
+    <div class="report-section">
+      <h3>Daily Report</h3>
+      <div class="report-filters">
+        <input type="date" id="reportDate">
+        <button id="fetchDailyBtn">Generate Daily Report</button>
+      </div>
+      <div id="dailyReport"></div>
+    </div>
+  </section>
+
+  <script src="script.js"></script>
+</body>
 </html>
