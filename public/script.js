@@ -550,66 +550,60 @@ function loadOrders() {
   fetch("/orders")
     .then((res) => res.json())
     .then((orders) => {
-      const container = document.getElementById("orders");
-      container.innerHTML = "<h3>All Orders</h3>";
+      const ordersTable = document.getElementById("ordersTable");
+      if (!ordersTable) return;
 
       if (orders.length === 0) {
-        container.innerHTML += "<p>No orders yet.</p>";
+        ordersTable.innerHTML = "<p>No orders found</p>";
         return;
       }
 
-      orders.forEach((order) => {
-        container.innerHTML += `
-          <p>Order #${order.order_id}: ${order.customer_name} ordered ${
-          order.quantity
-        } x ${order.product_name} (${
-          order.variant_size || "Unknown size"
-        }) totaling $${order.subtotal} on ${new Date(
-          order.date
-        ).toLocaleDateString()}</p>        `;
-      });
+      const table = document.createElement("table");
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Date</th>
+            <th>Customer</th>
+            <th>Product</th>
+            <th>Size</th>
+            <th>Quantity</th>
+            <th>Unit Price</th>
+            <th>Subtotal</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${orders
+            .map(
+              (order) => `
+            <tr>
+              <td>${order.order_id}</td>
+              <td>${new Date(order.date).toLocaleString()}</td>
+              <td>${order.customer_name}</td>
+              <td>${order.product_name}</td>
+              <td>${order.variant_size}</td>
+              <td>${order.quantity}</td>
+              <td>$${Number(order.unit_price || 0).toFixed(2)}</td>
+              <td>$${Number(order.subtotal || 0).toFixed(2)}</td>
+              <td>$${Number(order.total_price || 0).toFixed(2)}</td>
+            </tr>
+          `
+            )
+            .join("")}
+        </tbody>
+      `;
+      ordersTable.innerHTML = "";
+      ordersTable.appendChild(table);
+    })
+    .catch((error) => {
+      console.error("Error loading orders:", error);
+      const ordersTable = document.getElementById("ordersTable");
+      if (ordersTable) {
+        ordersTable.innerHTML = "<p>Error loading orders</p>";
+      }
     });
 }
-//       orders.forEach(order => {
-//         container.innerHTML += `
-//           <p>Order #${order.order_id}: ${order.customer_name} ordered ${order.quantity} x ${order.product_name} (${order.variant_size || 'Unknown size'}) totaling $${order.subtotal ? order.subtotal.toFixed(2) : '0.00'} on ${new Date(order.date).toLocaleDateString()}</p>        `;
-//       });
-//     });
-// }
-
-// function loadOrderFormDropdowns() {
-//   // Load customers
-//   fetch("/customers")
-//     .then((res) => res.json())
-//     .then((customers) => {
-//       const custSelect = document.getElementById("orderCustomerSelect");
-//       customers.forEach((cust) => {
-//         const opt = document.createElement("option");
-//         opt.value = cust.customer_id;
-//         opt.textContent = cust.name;
-//         custSelect.appendChild(opt);
-//       });
-//     });
-
-//   // Load variants
-//   fetch("/products")
-//     .then((res) => res.json())
-//     .then((products) => {
-//       const variantSelect = document.getElementById("orderVariantSelect");
-//       products.forEach((prod) => {
-//         fetch(`/products/${prod.product_id}/variants`)
-//           .then((res) => res.json())
-//           .then((variants) => {
-//             variants.forEach((variant) => {
-//               const opt = document.createElement("option");
-//               opt.value = variant.variant_id;
-//               opt.textContent = `${prod.name} - ${variant.size} (${variant.units_in_stock} in stock)`;
-//               variantSelect.appendChild(opt);
-//             });
-//           });
-//       });
-//     });
-// }
 
 const populateSelect = (selectElement, data, valueKey, textKey) => {
   selectElement.innerHTML = '<option value="">Select</option>';
@@ -621,49 +615,221 @@ const populateSelect = (selectElement, data, valueKey, textKey) => {
   });
 };
 
-// Handle Order Form Submit
-document.getElementById("orderForm").addEventListener("submit", (e) => {
+// Order form handler
+document.getElementById("orderForm").addEventListener("submit", async (e) => {
   e.preventDefault();
+  console.log("Order form submitted");
 
-  const customerId = parseInt(
-    document.getElementById("orderCustomerSelect").value
-  );
-  const variantId = parseInt(
-    document.getElementById("orderVariantSelect").value
-  );
-  const quantity = parseInt(document.getElementById("orderQuantity").value);
+  const customerId = document.getElementById("orderCustomerSelect").value;
 
-  // Simple version: One variant per order
+  if (!customerId) {
+    alert("Please select a customer");
+    return;
+  }
+
+  const items = [];
+  const itemRows = document.querySelectorAll(".order-item-row");
+
+  console.log("Found order item rows:", itemRows.length);
+
+  itemRows.forEach((row, index) => {
+    const variantSelect = row.querySelector(".variant-select");
+    const quantityInput = row.querySelector(".quantity-input");
+
+    console.log(`Row ${index + 1}:`, {
+      variantSelect: variantSelect ? variantSelect.value : "not found",
+      quantityInput: quantityInput ? quantityInput.value : "not found",
+    });
+
+    if (variantSelect && quantityInput) {
+      const variantId = variantSelect.value;
+      const quantity = parseInt(quantityInput.value);
+
+      if (variantId && quantity > 0) {
+        items.push({ variant_id: variantId, quantity: quantity });
+        console.log(`Added item:`, {
+          variant_id: variantId,
+          quantity: quantity,
+        });
+      }
+    }
+  });
+
+  console.log("Collected items:", items);
+
+  if (items.length === 0) {
+    alert("Please add at least one item to the order");
+    return;
+  }
+
   const orderData = {
     customer_id: customerId,
-    items: [
-      {
-        variant_id: variantId,
-        quantity: quantity,
-      },
-    ],
+    items: items,
   };
 
-  console.log("Submitting order:", orderData);
+  console.log("Sending order data:", orderData);
 
-  fetch("/orders", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(orderData),
-  })
-    .then((res) => res.json())
-    .then((data) => {
-      console.log("Server responded:", data);
-      alert(data.message);
-      document.getElementById("orderForm").reset();
-      loadOrders();
-      loadProducts();
-    })
-    .catch((err) => console.error("Error submitting order:", err));
+  try {
+    const response = await fetch("/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(orderData),
+    });
+
+    console.log("Response status:", response.status);
+    const result = await response.json();
+    console.log("Server response:", result);
+
+    if (!response.ok) {
+      throw new Error(result.error || "Failed to create order");
+    }
+
+    // Clear the form
+    document.getElementById("orderForm").reset();
+
+    // Clear the order items container
+    const orderItemsContainer = document.getElementById("orderItemsContainer");
+    orderItemsContainer.innerHTML = "";
+
+    // Add a new empty row
+    const newRow = document.createElement("div");
+    newRow.className = "order-item-row";
+    newRow.innerHTML = `
+      <select class="form-control variant-select" required>
+        <option value="">Select a product variant</option>
+      </select>
+      <input type="number" class="form-control quantity-input" min="1" value="1" required>
+      <button type="button" class="btn-secondary remove-item" onclick="this.parentElement.remove()">Remove</button>
+    `;
+    orderItemsContainer.appendChild(newRow);
+
+    // Reload the variants for the new row
+    loadProductVariants();
+
+    // Reload orders display
+    loadOrders();
+
+    alert("Order created successfully!");
+  } catch (error) {
+    console.error("Error creating order:", error);
+    alert(error.message);
+  }
 });
-// Initial load
-loadOrderFormDropdowns();
-loadOrders();
+
+// Load product variants for order form
+async function loadProductVariants() {
+  try {
+    const response = await fetch("/products");
+    const products = await response.json();
+
+    const orderItemsContainer = document.getElementById("orderItemsContainer");
+    if (!orderItemsContainer) {
+      console.error("Order items container not found");
+      return;
+    }
+
+    // Get all variant dropdowns
+    const variantDropdowns = document.querySelectorAll(".variant-select");
+    if (variantDropdowns.length === 0) {
+      console.error("No variant dropdowns found");
+      return;
+    }
+
+    // Clear all dropdowns first
+    variantDropdowns.forEach((dropdown) => {
+      dropdown.innerHTML = '<option value="">Select a product variant</option>';
+    });
+
+    // Load variants for each product
+    for (const product of products) {
+      try {
+        const variantResponse = await fetch(
+          `/products/${product.product_id}/variants`
+        );
+        if (!variantResponse.ok) {
+          throw new Error(
+            `Failed to fetch variants for product ${product.product_id}`
+          );
+        }
+        const variants = await variantResponse.json();
+
+        // Add product header option
+        variantDropdowns.forEach((dropdown) => {
+          const productOption = document.createElement("option");
+          productOption.value = "";
+          productOption.textContent = `-- ${product.name} --`;
+          productOption.disabled = true;
+          dropdown.appendChild(productOption);
+
+          // Add variant options
+          variants.forEach((variant) => {
+            const option = document.createElement("option");
+            option.value = variant.variant_id;
+            option.textContent = `${product.name} - ${variant.size} (${variant.units_in_stock} in stock)`;
+            option.disabled = variant.units_in_stock <= 0;
+            dropdown.appendChild(option);
+          });
+        });
+      } catch (error) {
+        console.error(
+          `Error loading variants for product ${product.product_id}:`,
+          error
+        );
+      }
+    }
+  } catch (error) {
+    console.error("Error loading product variants:", error);
+    alert("Error loading product variants");
+  }
+}
+
+// Add order item row
+function addOrderItemRow() {
+  const orderItemsContainer = document.getElementById("orderItemsContainer");
+  const newRow = document.createElement("div");
+  newRow.className = "order-item-row";
+  newRow.innerHTML = `
+    <select class="form-control variant-select" required>
+      <option value="">Select a product variant</option>
+    </select>
+    <input type="number" class="form-control quantity-input" min="1" value="1" required>
+    <button type="button" class="btn-secondary remove-item" onclick="this.parentElement.remove()">Remove</button>
+  `;
+  orderItemsContainer.appendChild(newRow);
+  loadProductVariants(); // Reload variants for the new row
+}
+
+// Remove order item row
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("remove-item")) {
+    e.target.parentElement.remove();
+  }
+});
+
+// Load order form dropdowns
+function loadOrderFormDropdowns() {
+  // Load customers
+  fetch("/customers")
+    .then((res) => res.json())
+    .then((customers) => {
+      const custSelect = document.getElementById("orderCustomerSelect");
+      if (custSelect) {
+        custSelect.innerHTML = '<option value="">Select Customer</option>';
+        customers.forEach((cust) => {
+          const opt = document.createElement("option");
+          opt.value = cust.customer_id;
+          opt.textContent = cust.name;
+          custSelect.appendChild(opt);
+        });
+      }
+    })
+    .catch((err) => console.error("Error loading customers:", err));
+
+  // Load product variants
+  loadProductVariants();
+}
 
 // Function to display report data
 function displayReportData(data, targetDiv) {
@@ -685,8 +851,6 @@ function displayReportData(data, targetDiv) {
           <th>Quantity</th>
           <th>Subtotal</th>
           <th>Total Price</th>
-          <th>Payments</th>
-          <th>Balance</th>
         </tr>
       </thead>
       <tbody>
@@ -701,10 +865,8 @@ function displayReportData(data, targetDiv) {
         <td>${order.product_name}</td>
         <td>${order.variant_size}</td>
         <td>${order.quantity}</td>
-        <td>$${order.subtotal}</td>
-        <td>$${order.total_price}</td>
-        <td>$${order.payments}</td>
-        <td>$${order.balance}</td>
+        <td>$${Number(order.subtotal).toFixed(2)}</td>
+        <td>$${Number(order.total_price).toFixed(2)}</td>
       </tr>
     `;
   });
@@ -716,9 +878,7 @@ function displayReportData(data, targetDiv) {
       <h3>Summary</h3>
       <p>Total Orders: ${data.totals.totalOrders}</p>
       <p>Total Quantity: ${data.totals.totalQuantity}</p>
-      <p>Total Sales: $${data.totals.totalSales}</p>
-      <p>Total Payments: $${data.totals.totalPayments}</p>
-      <p>Total Balance: $${data.totals.totalBalance}</p>
+      <p>Total Sales: $${Number(data.totals.totalSales).toFixed(2)}</p>
     </div>
   `;
 

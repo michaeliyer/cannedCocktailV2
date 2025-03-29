@@ -37,8 +37,8 @@ CREATE TABLE orders (
   customer_id INTEGER NOT NULL,
   date TEXT,
   total_price REAL,
-  payments REAL,
-  balance REAL,
+  -- payments REAL,
+  -- balance REAL,
   FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
 );
 
