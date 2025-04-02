@@ -1,3 +1,4 @@
+
 PRAGMA foreign_keys = ON;
 
 DROP TABLE IF EXISTS order_items;
@@ -48,6 +49,7 @@ CREATE TABLE order_items (
   product_id INTEGER NOT NULL,
   variant_id INTEGER NOT NULL,
   quantity INTEGER,
+  unit_price REAL,          -- 🔹 Added here
   subtotal REAL,
   FOREIGN KEY (order_id) REFERENCES orders(order_id),
   FOREIGN KEY (product_id) REFERENCES products(product_id),
