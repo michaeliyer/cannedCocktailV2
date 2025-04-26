@@ -511,19 +511,31 @@ app.get("/sales-report", (req, res) => {
 });
 
 app.get("/daily-report", (req, res) => {
+  const { date } = req.query;
+
+  if (!date) {
+    return res.status(400).json({ error: "Date parameter is required" });
+  }
+
   const query = `
     SELECT 
-      DATE(o.date) as sale_date,
-      COUNT(DISTINCT o.order_id) as total_orders,
-      SUM(oi.quantity) as total_quantity,
-      SUM(oi.subtotal) as total_sales
+      o.date,
+      c.name as customer_name,
+      p.name as product_name,
+      v.size as variant_size,
+      v.unit_price,
+      oi.quantity,
+      oi.subtotal
     FROM orders o
+    JOIN customers c ON o.customer_id = c.customer_id
     JOIN order_items oi ON o.order_id = oi.order_id
-    GROUP BY DATE(o.date)
-    ORDER BY sale_date DESC;
+    JOIN product_variants v ON oi.variant_id = v.variant_id
+    JOIN products p ON v.product_id = p.product_id
+    WHERE DATE(o.date) = DATE(?)
+    ORDER BY o.date DESC;
   `;
 
-  db.all(query, [], (err, rows) => {
+  db.all(query, [date], (err, rows) => {
     if (err) {
       console.error("Error fetching daily report:", err.message);
       return res.status(500).json({ error: err.message });
@@ -531,11 +543,12 @@ app.get("/daily-report", (req, res) => {
 
     // Format numbers to 2 decimal places
     rows.forEach((row) => {
-      row.total_sales = Number(row.total_sales).toFixed(2);
+      row.unit_price = Number(row.unit_price).toFixed(2);
+      row.subtotal = Number(row.subtotal).toFixed(2);
     });
 
     res.json({
-      daily_sales: rows,
+      sales: rows,
     });
   });
 });

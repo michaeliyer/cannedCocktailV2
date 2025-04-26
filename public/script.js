@@ -1100,7 +1100,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Daily Report
   fetchDailyBtn.addEventListener("click", () => {
-    fetch("/daily-report")
+    if (!reportDate.value) {
+      alert("Please select a date");
+      return;
+    }
+
+    fetch(`/daily-report?date=${reportDate.value}`)
       .then((res) => res.json())
       .then((data) => displayDailyReport(data))
       .catch((err) => {
@@ -1187,31 +1192,43 @@ function displayDailyReport(data) {
   const dailyReport = document.getElementById("dailyReport");
   if (!dailyReport) return;
 
-  if (!data.daily_sales || data.daily_sales.length === 0) {
-    dailyReport.innerHTML = "<p>No sales data available</p>";
+  if (!data.sales || data.sales.length === 0) {
+    dailyReport.innerHTML = `<p>No sales data available for ${new Date(
+      reportDate.value
+    ).toLocaleDateString()}</p>`;
     return;
   }
 
   let html = `
+    <h3>Sales for ${new Date(reportDate.value).toLocaleDateString()}</h3>
     <table class="report-table">
       <thead>
         <tr>
           <th>Date</th>
-          <th>Total Orders</th>
-          <th>Total Quantity</th>
-          <th>Total Sales</th>
+          <th>Time</th>
+          <th>Customer</th>
+          <th>Product</th>
+          <th>Variant</th>
+          <th>Unit Price</th>
+          <th>Quantity</th>
+          <th>Total</th>
         </tr>
       </thead>
       <tbody>
   `;
 
-  data.daily_sales.forEach((day) => {
+  data.sales.forEach((sale) => {
+    const saleDate = new Date(sale.date);
     html += `
       <tr>
-        <td>${new Date(day.sale_date).toLocaleDateString()}</td>
-        <td>${day.total_orders}</td>
-        <td>${day.total_quantity}</td>
-        <td>$${day.total_sales}</td>
+        <td>${saleDate.toLocaleDateString()}</td>
+        <td>${saleDate.toLocaleTimeString()}</td>
+        <td>${sale.customer_name}</td>
+        <td>${sale.product_name}</td>
+        <td>${sale.variant_size}</td>
+        <td>$${sale.unit_price}</td>
+        <td>${sale.quantity}</td>
+        <td>$${sale.subtotal}</td>
       </tr>
     `;
   });
