@@ -168,6 +168,7 @@ app.get("/inventory-summary", (req, res) => {
       v.unit_price,
       v.units_in_stock,
       v.units_sold,
+      (v.units_in_stock - v.units_sold) as updated_stock,
       COALESCE(SUM(oi.quantity), 0) AS total_quantity_sold,
       COALESCE(SUM(oi.subtotal), 0) AS total_revenue
     FROM products p

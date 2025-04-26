@@ -1216,7 +1216,6 @@ function loadInventorySummary() {
         return;
       }
 
-      // Create the inventory table
       let html = `
         <table class="inventory-table">
           <thead>
@@ -1226,15 +1225,15 @@ function loadInventorySummary() {
               <th>Variant</th>
               <th>SKU</th>
               <th>Unit Price</th>
-              <th>In Stock</th>
+              <th>Original Stock</th>
               <th>Sold</th>
+              <th>Current Stock</th>
               <th>Total Revenue</th>
             </tr>
           </thead>
           <tbody>
       `;
 
-      // Add rows for each variant
       inventory.forEach((item, index) => {
         const rowClass = index % 2 === 0 ? "even-row" : "odd-row";
         html += `
@@ -1246,6 +1245,7 @@ function loadInventorySummary() {
             <td>$${Number(item.unit_price).toFixed(2)}</td>
             <td>${item.units_in_stock}</td>
             <td>${item.units_sold}</td>
+            <td>${item.updated_stock}</td>
             <td>$${Number(item.total_revenue).toFixed(2)}</td>
           </tr>
         `;
