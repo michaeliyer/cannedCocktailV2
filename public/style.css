@@ -21,7 +21,8 @@ button {
   font-family: "Archivo Black", sans-serif;
   font-size: 2.25rem;
   font-style: oblique;
-  color: #b2b2b2;
+  color: #fff;
+  margin-bottom: 20px;
 }
 
 form {
@@ -37,32 +38,62 @@ select {
 .inventory-container {
   margin-top: 1rem;
   overflow-x: auto;
+  background-color: #1a1a1a;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #333;
 }
 
 .inventory-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 1rem;
+  margin: 20px 0;
+  font-size: 0.9em;
+  color: #b2b2b2;
 }
 
 .inventory-table th,
 .inventory-table td {
-  border: 1px solid #ccc;
-  padding: 8px 12px;
-  text-align: center;
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #333;
 }
 
 .inventory-table th {
-  background-color: #f8f8f8;
-}
-
-.inventory-table tr:nth-child(even) {
-  background-color: #f9f9f9;
-}
-
-.inventory-table tr:last-child td {
-  background-color: #e0ffe0;
+  background-color: #2a2a2a;
   font-weight: bold;
+  color: #fff;
+}
+
+.inventory-table .even-row {
+  background-color: #1a1a1a;
+}
+
+.inventory-table .odd-row {
+  background-color: #2a2a2a;
+}
+
+.inventory-table .product-row {
+  background-color: #2a2a2a;
+  font-weight: bold;
+  color: #fff;
+}
+
+.inventory-table .variant-row {
+  background-color: #1a1a1a;
+  color: #b2b2b2;
+}
+
+.inventory-table .variant-row:hover {
+  background-color: #2a2a2a;
+}
+
+.inventory-table .product-row td {
+  border-bottom: 2px solid #333;
+}
+
+.inventory-table td:empty {
+  background-color: #1a1a1a;
 }
 
 #orders {

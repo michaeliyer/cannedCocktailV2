@@ -154,6 +154,38 @@ app.get("/inventory", (req, res) => {
   });
 });
 
+// Get full inventory summary
+app.get("/inventory-summary", (req, res) => {
+  const query = `
+    SELECT 
+      p.product_id,
+      p.name AS product_name,
+      p.description,
+      p.category,
+      v.variant_id,
+      v.size,
+      v.sku,
+      v.unit_price,
+      v.units_in_stock,
+      v.units_sold,
+      COALESCE(SUM(oi.quantity), 0) AS total_quantity_sold,
+      COALESCE(SUM(oi.subtotal), 0) AS total_revenue
+    FROM products p
+    LEFT JOIN product_variants v ON p.product_id = v.product_id
+    LEFT JOIN order_items oi ON v.variant_id = oi.variant_id
+    GROUP BY p.product_id, v.variant_id
+    ORDER BY p.name, v.size;
+  `;
+
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      console.error("Error fetching inventory summary:", err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(rows);
+  });
+});
+
 // --- CUSTOMERS CRUD ---
 
 // Get all customers

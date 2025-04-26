@@ -1074,4 +1074,68 @@ document.addEventListener("DOMContentLoaded", () => {
   loadCustomers();
   loadOrders();
   loadOrderFormDropdowns();
+  loadInventorySummary();
 });
+
+function loadInventorySummary() {
+  fetch("/inventory-summary")
+    .then((res) => res.json())
+    .then((inventory) => {
+      const inventoryTable = document.getElementById("inventoryTable");
+      if (!inventoryTable) return;
+
+      if (inventory.length === 0) {
+        inventoryTable.innerHTML = "<p>No inventory data found</p>";
+        return;
+      }
+
+      // Create the inventory table
+      let html = `
+        <table class="inventory-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Category</th>
+              <th>Variant</th>
+              <th>SKU</th>
+              <th>Unit Price</th>
+              <th>In Stock</th>
+              <th>Sold</th>
+              <th>Total Revenue</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      // Add rows for each variant
+      inventory.forEach((item, index) => {
+        const rowClass = index % 2 === 0 ? "even-row" : "odd-row";
+        html += `
+          <tr class="${rowClass}">
+            <td>${item.product_name}</td>
+            <td>${item.category || "-"}</td>
+            <td>${item.size}</td>
+            <td>${item.sku}</td>
+            <td>$${Number(item.unit_price).toFixed(2)}</td>
+            <td>${item.units_in_stock}</td>
+            <td>${item.units_sold}</td>
+            <td>$${Number(item.total_revenue).toFixed(2)}</td>
+          </tr>
+        `;
+      });
+
+      html += `
+          </tbody>
+        </table>
+      `;
+
+      inventoryTable.innerHTML = html;
+    })
+    .catch((error) => {
+      console.error("Error loading inventory summary:", error);
+      const inventoryTable = document.getElementById("inventoryTable");
+      if (inventoryTable) {
+        inventoryTable.innerHTML = "<p>Error loading inventory summary</p>";
+      }
+    });
+}
