@@ -562,69 +562,31 @@ app.get("/sales-report", (req, res) => {
 });
 
 app.get("/daily-report", (req, res) => {
-  const { date } = req.query;
-
   const query = `
     SELECT 
-      o.order_id,
-      o.date,
-      c.name AS customer_name,
-      p.name AS product_name,
-      v.size AS variant_size,
-      oi.quantity,
-      oi.subtotal,
-      o.total_price,
-      o.payments,
-      o.balance
+      DATE(o.date) as sale_date,
+      COUNT(DISTINCT o.order_id) as total_orders,
+      SUM(oi.quantity) as total_quantity,
+      SUM(oi.subtotal) as total_sales
     FROM orders o
-    JOIN customers c ON o.customer_id = c.customer_id
     JOIN order_items oi ON o.order_id = oi.order_id
-    JOIN product_variants v ON oi.variant_id = v.variant_id
-    JOIN products p ON v.product_id = p.product_id
-    WHERE DATE(o.date) = DATE(?)
-    ORDER BY o.date DESC, o.order_id DESC;
+    GROUP BY DATE(o.date)
+    ORDER BY sale_date DESC;
   `;
 
-  db.all(query, [date], (err, rows) => {
+  db.all(query, [], (err, rows) => {
     if (err) {
       console.error("Error fetching daily report:", err.message);
       return res.status(500).json({ error: err.message });
     }
 
-    // Calculate totals
-    const totals = rows.reduce(
-      (acc, row) => {
-        acc.totalOrders++;
-        acc.totalQuantity += row.quantity;
-        acc.totalSales += row.subtotal;
-        acc.totalPayments += row.payments || 0;
-        acc.totalBalance += row.balance || 0;
-        return acc;
-      },
-      {
-        totalOrders: 0,
-        totalQuantity: 0,
-        totalSales: 0,
-        totalPayments: 0,
-        totalBalance: 0,
-      }
-    );
-
     // Format numbers to 2 decimal places
     rows.forEach((row) => {
-      row.subtotal = Number(row.subtotal).toFixed(2);
-      row.total_price = Number(row.total_price).toFixed(2);
-      row.payments = row.payments ? Number(row.payments).toFixed(2) : "0.00";
-      row.balance = row.balance ? Number(row.balance).toFixed(2) : "0.00";
+      row.total_sales = Number(row.total_sales).toFixed(2);
     });
 
-    totals.totalSales = Number(totals.totalSales).toFixed(2);
-    totals.totalPayments = Number(totals.totalPayments).toFixed(2);
-    totals.totalBalance = Number(totals.totalBalance).toFixed(2);
-
     res.json({
-      orders: rows,
-      totals,
+      daily_sales: rows,
     });
   });
 });

@@ -1055,17 +1055,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Daily Report
   fetchDailyBtn.addEventListener("click", () => {
-    if (!reportDate.value) {
-      alert("Please select a date. Now!");
-      return;
-    }
-
-    fetch(`/daily-report?date=${reportDate.value}`)
+    fetch("/daily-report")
       .then((res) => res.json())
-      .then((data) => displayReportData(data, dailyReport))
+      .then((data) => displayDailyReport(data))
       .catch((err) => {
         console.error("Error fetching daily report:", err);
-        dailyReport.innerHTML = "<p>Error loading daily report.</p>";
+        const dailyReport = document.getElementById("dailyReport");
+        if (dailyReport) {
+          dailyReport.innerHTML = "<p>Error loading daily report</p>";
+        }
       });
   });
 
@@ -1138,4 +1136,45 @@ function loadInventorySummary() {
         inventoryTable.innerHTML = "<p>Error loading inventory summary</p>";
       }
     });
+}
+
+function displayDailyReport(data) {
+  const dailyReport = document.getElementById("dailyReport");
+  if (!dailyReport) return;
+
+  if (!data.daily_sales || data.daily_sales.length === 0) {
+    dailyReport.innerHTML = "<p>No sales data available</p>";
+    return;
+  }
+
+  let html = `
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Total Orders</th>
+          <th>Total Quantity</th>
+          <th>Total Sales</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  data.daily_sales.forEach((day) => {
+    html += `
+      <tr>
+        <td>${new Date(day.sale_date).toLocaleDateString()}</td>
+        <td>${day.total_orders}</td>
+        <td>${day.total_quantity}</td>
+        <td>$${day.total_sales}</td>
+      </tr>
+    `;
+  });
+
+  html += `
+      </tbody>
+    </table>
+  `;
+
+  dailyReport.innerHTML = html;
 }
