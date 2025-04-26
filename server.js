@@ -468,32 +468,31 @@ app.get("/orders", (req, res) => {
 app.get("/sales-report", (req, res) => {
   const { startDate, endDate } = req.query;
 
-  let query = `
+  if (!startDate || !endDate) {
+    return res
+      .status(400)
+      .json({ error: "Start date and end date are required" });
+  }
+
+  const query = `
     SELECT 
-      DATE(o.date) as sale_date,
-      COUNT(DISTINCT o.order_id) as total_orders,
-      SUM(oi.quantity) as total_quantity,
-      SUM(oi.subtotal) as total_sales
+      o.date,
+      c.name as customer_name,
+      p.name as product_name,
+      v.size as variant_size,
+      v.unit_price,
+      oi.quantity,
+      oi.subtotal
     FROM orders o
+    JOIN customers c ON o.customer_id = c.customer_id
     JOIN order_items oi ON o.order_id = oi.order_id
-    WHERE 1=1
+    JOIN product_variants v ON oi.variant_id = v.variant_id
+    JOIN products p ON v.product_id = p.product_id
+    WHERE DATE(o.date) BETWEEN DATE(?) AND DATE(?)
+    ORDER BY o.date DESC;
   `;
 
-  const params = [];
-
-  if (startDate) {
-    query += ` AND DATE(o.date) >= DATE(?)`;
-    params.push(startDate);
-  }
-
-  if (endDate) {
-    query += ` AND DATE(o.date) <= DATE(?)`;
-    params.push(endDate);
-  }
-
-  query += ` GROUP BY DATE(o.date) ORDER BY sale_date DESC`;
-
-  db.all(query, params, (err, rows) => {
+  db.all(query, [startDate, endDate], (err, rows) => {
     if (err) {
       console.error("Error fetching sales report:", err.message);
       return res.status(500).json({ error: err.message });
@@ -501,11 +500,12 @@ app.get("/sales-report", (req, res) => {
 
     // Format numbers to 2 decimal places
     rows.forEach((row) => {
-      row.total_sales = Number(row.total_sales).toFixed(2);
+      row.unit_price = Number(row.unit_price).toFixed(2);
+      row.subtotal = Number(row.subtotal).toFixed(2);
     });
 
     res.json({
-      daily_sales: rows,
+      sales: rows,
     });
   });
 });
@@ -734,6 +734,62 @@ app.post("/import-data", (req, res) => {
           });
         });
       });
+    });
+  });
+});
+
+app.get("/customer-report", (req, res) => {
+  const { customer_id, startDate, endDate } = req.query;
+
+  if (!customer_id) {
+    return res.status(400).json({ error: "Customer ID is required" });
+  }
+
+  let query = `
+    SELECT 
+      o.date,
+      c.name as customer_name,
+      p.name as product_name,
+      v.size as variant_size,
+      v.unit_price,
+      oi.quantity,
+      oi.subtotal
+    FROM orders o
+    JOIN customers c ON o.customer_id = c.customer_id
+    JOIN order_items oi ON o.order_id = oi.order_id
+    JOIN product_variants v ON oi.variant_id = v.variant_id
+    JOIN products p ON v.product_id = p.product_id
+    WHERE o.customer_id = ?
+  `;
+
+  const params = [customer_id];
+
+  if (startDate) {
+    query += ` AND DATE(o.date) >= DATE(?)`;
+    params.push(startDate);
+  }
+
+  if (endDate) {
+    query += ` AND DATE(o.date) <= DATE(?)`;
+    params.push(endDate);
+  }
+
+  query += ` ORDER BY o.date DESC`;
+
+  db.all(query, params, (err, rows) => {
+    if (err) {
+      console.error("Error fetching customer report:", err.message);
+      return res.status(500).json({ error: err.message });
+    }
+
+    // Format numbers to 2 decimal places
+    rows.forEach((row) => {
+      row.unit_price = Number(row.unit_price).toFixed(2);
+      row.subtotal = Number(row.subtotal).toFixed(2);
+    });
+
+    res.json({
+      sales: rows,
     });
   });
 });
