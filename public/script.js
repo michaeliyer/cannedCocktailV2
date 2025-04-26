@@ -967,7 +967,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Date Range Report
   fetchDateRangeBtn.addEventListener("click", () => {
     if (!startDate.value || !endDate.value) {
-      alert("Please select both start and end dates!");
+      alert("Please select both start and end dates");
       return;
     }
 
@@ -977,12 +977,57 @@ document.addEventListener("DOMContentLoaded", () => {
 
     fetch(`/sales-report?${params.toString()}`)
       .then((res) => res.json())
-      .then((data) => displayReportData(data, dateRangeReport))
+      .then((data) => displayDateRangeReport(data))
       .catch((err) => {
         console.error("Error fetching date range report:", err);
-        dateRangeReport.innerHTML = "<p>Error loading date range report.</p>";
+        const dateRangeReport = document.getElementById("dateRangeReport");
+        if (dateRangeReport) {
+          dateRangeReport.innerHTML = "<p>Error loading date range report</p>";
+        }
       });
   });
+
+  function displayDateRangeReport(data) {
+    const dateRangeReport = document.getElementById("dateRangeReport");
+    if (!dateRangeReport) return;
+
+    if (!data.daily_sales || data.daily_sales.length === 0) {
+      dateRangeReport.innerHTML =
+        "<p>No sales data available for the selected date range</p>";
+      return;
+    }
+
+    let html = `
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Total Orders</th>
+            <th>Total Quantity</th>
+            <th>Total Sales</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    data.daily_sales.forEach((day) => {
+      html += `
+        <tr>
+          <td>${new Date(day.sale_date).toLocaleDateString()}</td>
+          <td>${day.total_orders}</td>
+          <td>${day.total_quantity}</td>
+          <td>$${day.total_sales}</td>
+        </tr>
+      `;
+    });
+
+    html += `
+        </tbody>
+      </table>
+    `;
+
+    dateRangeReport.innerHTML = html;
+  }
 
   // Customer Report
   fetchCustomerReportBtn.addEventListener("click", () => {
