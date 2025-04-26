@@ -1134,25 +1134,87 @@ document.addEventListener("DOMContentLoaded", () => {
   // Product Report
   fetchProductReportBtn.addEventListener("click", () => {
     const productId = productReportSelect.value;
-    const params = new URLSearchParams();
-
-    if (productId) {
-      params.append("product_id", productId);
+    if (!productId) {
+      alert("Please select a product");
+      return;
     }
 
-    if (productStartDate.value && productEndDate.value) {
+    const params = new URLSearchParams();
+    params.append("product_id", productId);
+
+    // Add date range if specified
+    if (productStartDate.value) {
       params.append("startDate", productStartDate.value);
+    }
+    if (productEndDate.value) {
       params.append("endDate", productEndDate.value);
     }
 
-    fetch(`/sales-report?${params.toString()}`)
+    fetch(`/product-report?${params.toString()}`)
       .then((res) => res.json())
-      .then((data) => displayReportData(data, productReport))
+      .then((data) =>
+        displayProductReport(
+          data,
+          productReportSelect.options[productReportSelect.selectedIndex].text
+        )
+      )
       .catch((err) => {
         console.error("Error fetching product report:", err);
-        productReport.innerHTML = "<p>Error loading product report.</p>";
+        const productReport = document.getElementById("productReport");
+        if (productReport) {
+          productReport.innerHTML = "<p>Error loading product report</p>";
+        }
       });
   });
+
+  function displayProductReport(data, productName) {
+    const productReport = document.getElementById("productReport");
+    if (!productReport) return;
+
+    if (!data.sales || data.sales.length === 0) {
+      productReport.innerHTML = `<p>No sales data available for ${productName}</p>`;
+      return;
+    }
+
+    let html = `
+      <h3>Sales for ${productName}</h3>
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Customer</th>
+            <th>Variant</th>
+            <th>Unit Price</th>
+            <th>Quantity</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    data.sales.forEach((sale) => {
+      const saleDate = new Date(sale.date);
+      html += `
+        <tr>
+          <td>${saleDate.toLocaleDateString()}</td>
+          <td>${saleDate.toLocaleTimeString()}</td>
+          <td>${sale.customer_name}</td>
+          <td>${sale.variant_size}</td>
+          <td>$${sale.unit_price}</td>
+          <td>${sale.quantity}</td>
+          <td>$${sale.subtotal}</td>
+        </tr>
+      `;
+    });
+
+    html += `
+        </tbody>
+      </table>
+    `;
+
+    productReport.innerHTML = html;
+  }
 
   // Variant Report
   fetchVariantReportBtn.addEventListener("click", () => {

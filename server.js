@@ -795,6 +795,62 @@ app.get("/customer-report", (req, res) => {
   });
 });
 
+app.get("/product-report", (req, res) => {
+  const { product_id, startDate, endDate } = req.query;
+
+  if (!product_id) {
+    return res.status(400).json({ error: "Product ID is required" });
+  }
+
+  let query = `
+    SELECT 
+      o.date,
+      c.name as customer_name,
+      p.name as product_name,
+      v.size as variant_size,
+      v.unit_price,
+      oi.quantity,
+      oi.subtotal
+    FROM orders o
+    JOIN customers c ON o.customer_id = c.customer_id
+    JOIN order_items oi ON o.order_id = oi.order_id
+    JOIN product_variants v ON oi.variant_id = v.variant_id
+    JOIN products p ON v.product_id = p.product_id
+    WHERE p.product_id = ?
+  `;
+
+  const params = [product_id];
+
+  if (startDate) {
+    query += ` AND DATE(o.date) >= DATE(?)`;
+    params.push(startDate);
+  }
+
+  if (endDate) {
+    query += ` AND DATE(o.date) <= DATE(?)`;
+    params.push(endDate);
+  }
+
+  query += ` ORDER BY o.date DESC`;
+
+  db.all(query, params, (err, rows) => {
+    if (err) {
+      console.error("Error fetching product report:", err.message);
+      return res.status(500).json({ error: err.message });
+    }
+
+    // Format numbers to 2 decimal places
+    rows.forEach((row) => {
+      row.unit_price = Number(row.unit_price).toFixed(2);
+      row.subtotal = Number(row.subtotal).toFixed(2);
+    });
+
+    res.json({
+      sales: rows,
+    });
+  });
+});
+
 // --- SERVER LISTEN ---
 app.listen(3000, () => {
   console.log("Server running at http://localhost:3000");
