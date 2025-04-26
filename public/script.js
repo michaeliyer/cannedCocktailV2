@@ -1219,25 +1219,85 @@ document.addEventListener("DOMContentLoaded", () => {
   // Variant Report
   fetchVariantReportBtn.addEventListener("click", () => {
     const variantId = variantReportSelect.value;
-    const params = new URLSearchParams();
-
-    if (variantId) {
-      params.append("variant_id", variantId);
+    if (!variantId) {
+      alert("Please select a variant");
+      return;
     }
 
-    if (variantStartDate.value && variantEndDate.value) {
+    const params = new URLSearchParams();
+    params.append("variant_id", variantId);
+
+    // Add date range if specified
+    if (variantStartDate.value) {
       params.append("startDate", variantStartDate.value);
+    }
+    if (variantEndDate.value) {
       params.append("endDate", variantEndDate.value);
     }
 
-    fetch(`/sales-report?${params.toString()}`)
+    fetch(`/variant-report?${params.toString()}`)
       .then((res) => res.json())
-      .then((data) => displayReportData(data, variantReport))
+      .then((data) =>
+        displayVariantReport(
+          data,
+          variantReportSelect.options[variantReportSelect.selectedIndex].text
+        )
+      )
       .catch((err) => {
         console.error("Error fetching variant report:", err);
-        variantReport.innerHTML = "<p>Error loading variant report.</p>";
+        const variantReport = document.getElementById("variantReport");
+        if (variantReport) {
+          variantReport.innerHTML = "<p>Error loading variant report</p>";
+        }
       });
   });
+
+  function displayVariantReport(data, variantName) {
+    const variantReport = document.getElementById("variantReport");
+    if (!variantReport) return;
+
+    if (!data.sales || data.sales.length === 0) {
+      variantReport.innerHTML = `<p>No sales data available for ${variantName}</p>`;
+      return;
+    }
+
+    let html = `
+      <h3>Sales for ${variantName}</h3>
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Customer</th>
+            <th>Unit Price</th>
+            <th>Quantity</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    data.sales.forEach((sale) => {
+      const saleDate = new Date(sale.date);
+      html += `
+        <tr>
+          <td>${saleDate.toLocaleDateString()}</td>
+          <td>${saleDate.toLocaleTimeString()}</td>
+          <td>${sale.customer_name}</td>
+          <td>$${sale.unit_price}</td>
+          <td>${sale.quantity}</td>
+          <td>$${sale.subtotal}</td>
+        </tr>
+      `;
+    });
+
+    html += `
+        </tbody>
+      </table>
+    `;
+
+    variantReport.innerHTML = html;
+  }
 
   // Daily Report
   fetchDailyBtn.addEventListener("click", () => {
@@ -1264,6 +1324,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadOrders();
   loadOrderFormDropdowns();
   loadInventorySummary();
+  loadVariantDropdowns();
 });
 
 function loadInventorySummary() {
@@ -1380,4 +1441,36 @@ function displayDailyReport(data) {
   `;
 
   dailyReport.innerHTML = html;
+}
+
+// Function to populate variant dropdowns
+async function loadVariantDropdowns() {
+  try {
+    // Fetch products and their variants
+    const productsResponse = await fetch("/products");
+    const products = await productsResponse.json();
+
+    const variantSelect = document.getElementById("variantReportSelect");
+    if (!variantSelect) return;
+
+    // Clear existing options
+    variantSelect.innerHTML = '<option value="">Select Variant</option>';
+
+    // For each product, fetch its variants and add them to the dropdown
+    for (const product of products) {
+      const variantsResponse = await fetch(
+        `/products/${product.product_id}/variants`
+      );
+      const variants = await variantsResponse.json();
+
+      variants.forEach((variant) => {
+        const option = document.createElement("option");
+        option.value = variant.variant_id;
+        option.textContent = `${product.name} - ${variant.size}`;
+        variantSelect.appendChild(option);
+      });
+    }
+  } catch (error) {
+    console.error("Error loading variant dropdowns:", error);
+  }
 }
