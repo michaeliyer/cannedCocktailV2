@@ -20,3 +20,16 @@ A simple inventory and order tracking system for a canned cocktail business.
 4. Open `index.html` in browser.
 
 ## Folder Structure
+
+PAYMENTS TABLE:
+
+-- CREATE TABLE payments (
+-- payment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+-- customer_id INTEGER NOT NULL,
+-- order_id INTEGER,
+-- amount REAL NOT NULL,
+-- payment_date TEXT DEFAULT CURRENT_TIMESTAMP,
+-- notes TEXT,
+-- FOREIGN KEY (customer_id) REFERENCES customers(customer_id),
+-- FOREIGN KEY (order_id) REFERENCES orders(order_id)
+-- );

@@ -55,3 +55,4 @@ CREATE TABLE order_items (
   FOREIGN KEY (product_id) REFERENCES products(product_id),
   FOREIGN KEY (variant_id) REFERENCES product_variants(variant_id)
 );
+

@@ -16,27 +16,34 @@
   <hr></hr>
   <hr></hr>
 
-  <h2 class="subHeads">+ Add New Customer +</h2>
-  <form id="customerForm">
-    <input type="text" id="cust_name" placeholder="Customer Name" required>
-    <input type="text" id="cust_phone" placeholder="Phone">
-    <input type="email" id="cust_email" placeholder="Email">
-    <input type="address" id="cust_address" placeholder="Address">
-    <input type="text" id="cust_notes" placeholder="Notes">
-    <button type="submit">Add Customer</button>
-  </form>
+  <div class="customer-section">
+    <button class="main-toggle" onclick="toggleSection('customerSubsections')">Customers</button>
+    
+    <div id="customerSubsections" style="display: none;">
+      <div class="customer-subsection">
+        <button class="sub-toggle" onclick="toggleSubsection('addCustomerSection')">Add New Customer</button>
+        <div id="addCustomerSection" style="display: none;">
+          <form id="customerForm">
+            <input type="text" id="cust_name" placeholder="Customer Name" required>
+            <input type="text" id="cust_phone" placeholder="Phone">
+            <input type="email" id="cust_email" placeholder="Email">
+            <input type="text" id="cust_notes" placeholder="Notes">
+            <button type="submit">Add Customer</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="customer-subsection">
+        <button class="sub-toggle" onclick="toggleSubsection('viewCustomersSection')">View All Customers</button>
+        <div id="viewCustomersSection" style="display: none;">
+          <div id="customers"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <hr></hr>
   <hr></hr>
-
-  <h2 class="subHeads">Customers</h2>
-  <div id="customers"></div>
-  
-  <hr></hr>
-  <hr></hr>
-  <hr></hr>
-
-
 
   <h2 class="subHeads">Add New Product</h2>
 

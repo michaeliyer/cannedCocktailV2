@@ -1476,3 +1476,21 @@ async function loadVariantDropdowns() {
     console.error("Error loading variant dropdowns:", error);
   }
 }
+
+function toggleSection(sectionId) {
+  const section = document.getElementById(sectionId);
+  if (section.style.display === "none" || section.style.display === "") {
+    section.style.display = "block";
+  } else {
+    section.style.display = "none";
+  }
+}
+
+function toggleSubsection(subsectionId) {
+  const subsection = document.getElementById(subsectionId);
+  if (subsection.style.display === "none" || subsection.style.display === "") {
+    subsection.style.display = "block";
+  } else {
+    subsection.style.display = "none";
+  }
+}
