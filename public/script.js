@@ -1349,7 +1349,7 @@ function loadInventorySummary() {
               <th>SKU</th>
               <th>Unit Price</th>
               <th>Original Stock</th>
-              <th>Sold</th>
+              <th>Sold Units</th>
               <th>Current Stock</th>
               <th>Total Revenue</th>
             </tr>
@@ -1366,9 +1366,9 @@ function loadInventorySummary() {
             <td>${item.size}</td>
             <td>${item.sku}</td>
             <td>$${Number(item.unit_price).toFixed(2)}</td>
-            <td>${item.units_in_stock}</td>
-            <td>${item.units_sold}</td>
-            <td>${item.updated_stock}</td>
+            <td>${item.original_stock}</td>
+            <td>${item.sold_units}</td>
+            <td>${item.current_stock}</td>
             <td>$${Number(item.total_revenue).toFixed(2)}</td>
           </tr>
         `;
