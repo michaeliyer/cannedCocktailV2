@@ -90,45 +90,53 @@
   <hr></hr>
   <hr></hr>
 
-  <h2 class="subHeads">Place New Order</h2>
-  <form id="orderForm">
-    <div class="form-group">
-      <label for="orderCustomerSelect">Customer:</label>
-      <select id="orderCustomerSelect" class="form-control" required>
-        <option value="">Select Customer</option>
-      </select>
-    </div>
+  <div class="order-section">
+    <button class="main-toggle" onclick="toggleSection('orderSubsections')">Orders</button>
+    
+    <div id="orderSubsections" style="display: none;">
+      <div class="order-subsection">
+        <button class="sub-toggle" onclick="toggleSubsection('placeOrderSection')">Place New Order</button>
+        <div id="placeOrderSection" style="display: none;">
+          <form id="orderForm">
+            <div class="form-group">
+              <label for="orderCustomerSelect">Customer:</label>
+              <select id="orderCustomerSelect" class="form-control" required>
+                <option value="">Select Customer</option>
+              </select>
+            </div>
 
-    <div class="order-items-container" id="orderItemsContainer">
-      <div class="order-item-row">
-        <select class="form-control variant-select" required>
-          <option value="">Select a product variant</option>
-        </select>
-        <input type="number" class="form-control quantity-input" min="1" value="1" required>
-        <button type="button" class="btn-secondary remove-item" onclick="this.parentElement.remove()">Remove</button>
+            <div class="order-items-container" id="orderItemsContainer">
+              <div class="order-item-row">
+                <select class="form-control variant-select" required>
+                  <option value="">Select a product variant</option>
+                </select>
+                <input type="number" class="form-control quantity-input" min="1" value="1" required>
+                <button type="button" class="btn-secondary remove-item" onclick="this.parentElement.remove()">Remove</button>
+              </div>
+            </div>
+
+            <button type="button" class="btn-secondary" onclick="addOrderItemRow()">Add Another Item</button>
+            <button type="submit" class="btn-primary">Place Order</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="order-subsection">
+        <button class="sub-toggle" onclick="toggleSubsection('viewOrdersSection')">View All Orders</button>
+        <div id="viewOrdersSection" style="display: none;">
+          <div id="orders">
+            <h3>Orders:</h3>
+            <div id="ordersTable"></div>
+          </div>
+        </div>
       </div>
     </div>
-
-    <button type="button" class="btn-secondary" onclick="addOrderItemRow()">Add Another Item</button>
-    <button type="submit" class="btn-primary">Place Order</button>
-  </form>
-
-  <hr></hr>
-  <hr></hr>
-
-  <div id="orders">
-    <h3>Orders:</h3>
-    <div id="ordersTable"></div>
   </div>
 
   <hr></hr>
   <hr></hr>
   <hr></hr>
-  <hr></hr>
 
-  </div>
-
-  
   <div class="inventory-container">
     <h2 class="subHeads">Inventory Summary</h2>
     <div id="inventoryTable"></div>
