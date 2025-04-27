@@ -45,81 +45,86 @@
   <hr></hr>
   <hr></hr>
 
-  <h2 class="subHeads">Add New Product</h2>
+  <div class="product-section">
+    <button class="main-toggle" onclick="toggleSection('productSubsections')">Products</button>
+    
+    <div id="productSubsections" style="display: none;">
+      <div class="product-subsection">
+        <button class="sub-toggle" onclick="toggleSubsection('addProductSection')">Add New Product</button>
+        <div id="addProductSection" style="display: none;">
+          <form id="productForm">
+            <input type="text" id="name" placeholder="Product Name" required>
+            <input type="text" id="description" placeholder="Description">
+            <input type="text" id="category" placeholder="Category">
+            <button type="submit">Add Product</button>
+          </form>
+        </div>
+      </div>
 
-  <form id="productForm">
-
-    <input type="text" id="name" placeholder="Product Name" required>
-    <input type="text" id="description" placeholder="Description">
-    <input type="text" id="category" placeholder="Category">
-    <button type="submit">Add Product</button>
-  </form>
-  
-  <hr></hr>
-  <hr></hr>
-
-  <div id="product-section">
-    <h2 class="subHeads">Products</h2>
-    <div id="products"></div>
-
-<hr></hr>
-<hr></hr>
-<hr></hr>
-
-<h2 class="subHeads">Add Variant</h2>
-<form id="variantForm">
-  <select id="variantProductSelect" required>
-    <option value="">Select Product</option>
-  </select><br>
-  <input type="text" id="size" placeholder="Size (e.g., 330ml)" required>
-  <input type="number" id="unit_price" placeholder="Unit Price" step="0.01" required>
-  <input type="number" id="units_in_stock" placeholder="Units in Stock" required>
-  <input type="text" id="sku" placeholder="SKU" required>
-  <button type="submit">Add Variant</button>
-</form>
-
-<hr></hr>
-<hr></hr>
-<hr></hr>
-<hr></hr>
-
-
-
-<h2 class="subHeads">Place New Order</h2>
-<form id="orderForm">
-  <div class="form-group">
-    <label for="orderCustomerSelect">Customer:</label>
-    <select id="orderCustomerSelect" class="form-control" required>
-      <option value="">Select Customer</option>
-    </select>
-  </div>
-
-  <div class="order-items-container" id="orderItemsContainer">
-    <div class="order-item-row">
-      <select class="form-control variant-select" required>
-        <option value="">Select a product variant</option>
-      </select>
-      <input type="number" class="form-control quantity-input" min="1" value="1" required>
-      <button type="button" class="btn-secondary remove-item" onclick="this.parentElement.remove()">Remove</button>
+      <div class="product-subsection">
+        <button class="sub-toggle" onclick="toggleSubsection('viewProductsSection')">View All Products</button>
+        <div id="viewProductsSection" style="display: none;">
+          <div id="products"></div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <button type="button" class="btn-secondary" onclick="addOrderItemRow()">Add Another Item</button>
-  <button type="submit" class="btn-primary">Place Order</button>
-</form>
+  <hr></hr>
+  <hr></hr>
 
-<hr></hr>
-<hr></hr>
+  <h2 class="subHeads">Add Variant</h2>
+  <form id="variantForm">
+    <select id="variantProductSelect" required>
+      <option value="">Select Product</option>
+    </select><br>
+    <input type="text" id="size" placeholder="Size (e.g., 330ml)" required>
+    <input type="number" id="unit_price" placeholder="Unit Price" step="0.01" required>
+    <input type="number" id="units_in_stock" placeholder="Units in Stock" required>
+    <input type="text" id="sku" placeholder="SKU" required>
+    <button type="submit">Add Variant</button>
+  </form>
 
-<div id="orders">
-  <h3>Orders:</h3>
-  <div id="ordersTable"></div>
-</div>
+  <hr></hr>
+  <hr></hr>
+  <hr></hr>
+  <hr></hr>
 
-<hr></hr>
-<hr></hr>
-<hr></hr>
-<hr></hr>
+  <h2 class="subHeads">Place New Order</h2>
+  <form id="orderForm">
+    <div class="form-group">
+      <label for="orderCustomerSelect">Customer:</label>
+      <select id="orderCustomerSelect" class="form-control" required>
+        <option value="">Select Customer</option>
+      </select>
+    </div>
+
+    <div class="order-items-container" id="orderItemsContainer">
+      <div class="order-item-row">
+        <select class="form-control variant-select" required>
+          <option value="">Select a product variant</option>
+        </select>
+        <input type="number" class="form-control quantity-input" min="1" value="1" required>
+        <button type="button" class="btn-secondary remove-item" onclick="this.parentElement.remove()">Remove</button>
+      </div>
+    </div>
+
+    <button type="button" class="btn-secondary" onclick="addOrderItemRow()">Add Another Item</button>
+    <button type="submit" class="btn-primary">Place Order</button>
+  </form>
+
+  <hr></hr>
+  <hr></hr>
+
+  <div id="orders">
+    <h3>Orders:</h3>
+    <div id="ordersTable"></div>
+  </div>
+
+  <hr></hr>
+  <hr></hr>
+  <hr></hr>
+  <hr></hr>
 
   </div>
 
