@@ -1402,7 +1402,9 @@ function displayDailyReport(data) {
   }
 
   let html = `
-    <h3>Sales for ${new Date(reportDate.value).toLocaleDateString()}</h3>
+    <h3>Sales for ${new Date(
+      reportDate.value + "T00:00:00"
+    ).toLocaleDateString()}</h3>
     <table class="report-table">
       <thead>
         <tr>
