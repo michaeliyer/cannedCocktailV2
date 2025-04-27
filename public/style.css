@@ -1,49 +1,243 @@
 body {
   font-family: "Signika", sans-serif;
   font-weight: 500;
-  padding: 2rem;
+  padding: 1.5rem;
   color: #b2b2b2;
   background: #000000;
 }
 
 h1 {
+  font-family: "Archivo Black", sans-serif;
   font-size: 3rem;
   margin-bottom: 1rem;
-}
-
-button {
-  margin: 0.5rem;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
+  color: #ffd700;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .subHeads {
   font-family: "Archivo Black", sans-serif;
   font-size: 2.25rem;
   font-style: oblique;
-  color: #fff;
-  margin-bottom: 20px;
+  color: #ffd700;
+  margin-bottom: 15px;
 }
 
-form {
-  margin-top: 1rem;
-}
-
-input,
-select {
-  margin: 0.5rem;
-  padding: 0.5rem;
-}
-
-.inventory-container {
-  margin-top: 1rem;
-  overflow-x: auto;
+.main-toggle,
+.sub-toggle {
+  font-family: "Signika", sans-serif;
   background-color: #1a1a1a;
-  padding: 20px;
+  color: #ffd700;
+  border: 1px solid #ffd700;
+  border-radius: 6px;
+  padding: 8px 16px;
+  margin: 5px 0;
+  cursor: pointer;
+  font-size: 1em;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.main-toggle:hover,
+.sub-toggle:hover {
+  background-color: #2a2a2a;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.main-toggle {
+  font-weight: bold;
+  background-color: #1a1a1a;
+  border: 2px solid #ffd700;
+}
+
+.sub-toggle {
+  background-color: #1a1a1a;
+  border: 1px solid #ffd700;
+}
+
+.customer-section,
+.product-section,
+.variant-section,
+.order-section,
+.inventory-section,
+.reports-section {
+  background-color: #1a1a1a;
   border-radius: 8px;
+  padding: 15px;
+  margin: 15px 0;
   border: 1px solid #333;
 }
 
+.customer-subsection,
+.product-subsection,
+.variant-subsection,
+.order-subsection,
+.inventory-subsection {
+  background-color: #1a1a1a;
+  border-radius: 6px;
+  padding: 10px;
+  margin: 8px 0;
+}
+
+form {
+  background-color: #1a1a1a;
+  padding: 15px;
+  border-radius: 6px;
+  margin: 10px 0;
+}
+
+input,
+select,
+textarea {
+  background-color: #2a2a2a;
+  color: #b2b2b2;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 8px;
+  margin: 5px 0;
+  width: 100%;
+  font-size: 0.9em;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #ffd700;
+}
+
+button[type="submit"] {
+  background-color: #1a1a1a;
+  color: #ffd700;
+  border: 1px solid #ffd700;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+}
+
+button[type="submit"]:hover {
+  background-color: #2a2a2a;
+  color: #fff;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0;
+  background-color: #1a1a1a;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+th,
+td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #333;
+}
+
+th {
+  background-color: #2a2a2a;
+  color: #ffd700;
+  font-weight: bold;
+}
+
+tr:hover {
+  background-color: #2a2a2a;
+}
+
+.report-section {
+  background-color: #1a1a1a;
+  border-radius: 6px;
+  padding: 15px;
+  margin: 10px 0;
+}
+
+.report-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+#dateRangeReport,
+#customerReport,
+#productReport,
+#variantReport,
+#dailyReport {
+  background-color: #1a1a1a;
+  border-radius: 6px;
+  padding: 15px;
+  margin-top: 10px;
+}
+
+.btn-primary,
+.btn-secondary {
+  background-color: #1a1a1a;
+  color: #ffd700;
+  border: 1px solid #ffd700;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: all 0.2s ease;
+  margin: 4px;
+}
+
+.btn-primary:hover,
+.btn-secondary:hover {
+  background-color: #2a2a2a;
+  color: #fff;
+}
+
+.btn-secondary {
+  background-color: #1a1a1a;
+  border: 1px solid #ffd700;
+}
+
+.form-group {
+  margin-bottom: 10px;
+}
+
+.order-items-container {
+  background-color: #1a1a1a;
+  border-radius: 6px;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+.order-item-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.variant-select,
+.quantity-input {
+  flex: 1;
+}
+
+.remove-item {
+  background-color: #1a1a1a;
+  color: #ffd700;
+  border: 1px solid #ffd700;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.remove-item:hover {
+  background-color: #2a2a2a;
+  color: #fff;
+}
+
+/* Keep existing inventory table styles */
 .inventory-table {
   width: 100%;
   border-collapse: collapse;
@@ -62,7 +256,7 @@ select {
 .inventory-table th {
   background-color: #2a2a2a;
   font-weight: bold;
-  color: #fff;
+  color: #ffd700;
 }
 
 .inventory-table .even-row {
@@ -76,7 +270,7 @@ select {
 .inventory-table .product-row {
   background-color: #2a2a2a;
   font-weight: bold;
-  color: #fff;
+  color: #ffd700;
 }
 
 .inventory-table .variant-row {
@@ -147,150 +341,10 @@ select {
   color: #b2b2b2;
 }
 
-/* Report Sections */
-.report-section {
-  margin: 2rem 0;
-  padding: 1rem;
-  background-color: #1a1a1a;
-  border-radius: 8px;
-}
-
-.report-section h3 {
-  color: #b2b2b2;
-  margin-bottom: 1rem;
-}
-
-.report-filters {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-}
-
-.report-filters input,
-.report-filters select {
-  padding: 0.5rem;
-  border: 1px solid #333;
-  border-radius: 4px;
-  background-color: #333131;
-  color: #b2b2b2;
-}
-
-.report-filters button {
-  padding: 0.5rem 1rem;
-  background-color: #4a4a4a;
-  color: #b2b2b2;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.report-filters button:hover {
-  background-color: #5a5a5a;
-}
-
-/* Order Form Styles */
-.form-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-  background: #333;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  border: 1px solid #404040;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: #fff;
-}
-
-.form-control {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #404040;
-  border-radius: 4px;
-  font-size: 14px;
-  background: #2a2a2a;
-  color: #fff;
-  transition: border-color 0.3s ease;
-}
-
-.form-control:focus {
-  border-color: #4a90e2;
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
-}
-
-.order-items-container {
-  margin: 15px 0;
-  padding: 15px;
-  background: #2a2a2a;
-  border-radius: 4px;
-  border: 1px solid #404040;
-}
-
-.order-item-row {
-  display: grid;
-  grid-template-columns: 2fr 1fr auto;
-  gap: 10px;
-  margin-bottom: 10px;
-  align-items: center;
-}
-
-.order-item-row:last-child {
-  margin-bottom: 0;
-}
-
-.btn-primary {
-  background-color: #4a90e2;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s ease;
-}
-
-.btn-primary:hover {
-  background-color: #357abd;
-}
-
-.btn-secondary {
-  background-color: #6c757d;
-  color: white;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s ease;
-}
-
-.btn-secondary:hover {
-  background-color: #5a6268;
-}
-
 /* Table Styles */
 .table-container {
   margin-top: 20px;
   overflow-x: auto;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #333;
-  color: #fff;
-  margin-bottom: 20px;
 }
 
 th,
