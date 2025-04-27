@@ -159,9 +159,27 @@ tr:hover {
 
 .report-filters {
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
+  align-items: flex-end;
   margin-bottom: 10px;
+}
+
+.report-filters input,
+.report-filters select,
+.report-filters button {
+  max-width: 20%;
+  min-width: 120px;
+  display: inline-block;
+  box-sizing: border-box;
+}
+
+.date-range-inputs {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: flex-end;
 }
 
 #dateRangeReport,
@@ -399,8 +417,8 @@ button#fetchDailyBtn {
   color: #ffd700;
   border: 1.5px solid #ffd700;
   border-radius: 5px;
-  font-size: 0.95em;
-  padding: 6px 18px;
+  font-size: 0.9em;
+  padding: 5px 12px;
   margin: 4px 0;
   font-family: "Signika", sans-serif;
   font-weight: 600;
