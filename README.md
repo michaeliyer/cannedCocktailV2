@@ -21,6 +21,7 @@ A simple inventory and order tracking system for a canned cocktail business.
 
 ## Folder Structure
 
+## Possibly add to Sql Schema
 PAYMENTS TABLE:
 
 -- CREATE TABLE payments (
