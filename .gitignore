@@ -1,22 +1,31 @@
 # Node dependencies
 node_modules/
 
-# SQLite database files (in root and /db)
+# SQLite database files (both root and /db)
 *.db
 *.db.*
 
-# Keep schema files in db/
+# Keep schema files
+!schema.sql
 !db/schema.sql
-!db/schema.js
 
-# Environment variables
-.env
-
-# Log files
+# Logs
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+logs/
 
-# macOS system file
+# OS-specific system files
 .DS_Store
+Thumbs.db
+
+# Ignore compiled programs or binaries
+^CProgram
+*.exe
+*.out
+
+# Env files if used later
+.env
+.env.*
+
+# Coverage or temp build files (optional)
+coverage/
+tmp/
