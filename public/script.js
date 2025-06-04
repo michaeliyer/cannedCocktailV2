@@ -505,6 +505,8 @@ custForm.addEventListener("submit", (e) => {
     notes: document.getElementById("cust_notes").value,
   };
 
+  console.log("Sending customer data:", custData);
+
   const editId = custForm.getAttribute("data-edit-id");
 
   if (editId) {
@@ -526,7 +528,6 @@ custForm.addEventListener("submit", (e) => {
       .catch((err) => console.error("Error editing customer:", err));
   } else {
     // === ADD CUSTOMER ===
-    console.log("Sending to server:", custData); // Debug log
     fetch("/customers", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
